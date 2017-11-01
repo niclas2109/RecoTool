@@ -1,0 +1,370 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane stylesheets="@style.css" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.doccuty.radarplus.view.controller.SettingsController">
+   <children>
+      <TabPane tabClosingPolicy="UNAVAILABLE">
+        <tabs>
+          <Tab text="Evaluation">
+            <content>
+              <AnchorPane minHeight="0.0" minWidth="0.0">
+                     <children>
+                        <VBox prefWidth="100.0" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <children>
+                              <GridPane hgap="10.0" layoutX="10.0" layoutY="10.0" vgap="5.0">
+                                 <columnConstraints>
+                                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" />
+                                    <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
+                                 </columnConstraints>
+                                 <rowConstraints>
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                                    <RowConstraints vgrow="NEVER" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                                 </rowConstraints>
+                                 <children>
+                                    <Label minWidth="140.0" text="%settings.evaluationDuration" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                    <HBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                       <children>
+                                          <ChoiceBox fx:id="cb_evaluationDuration" prefWidth="50.0" />
+                                          <Label maxHeight="1.7976931348623157E308" text="%settings.minute" />
+                                       </children>
+                                    </HBox>
+                                    <Label text="%settings.startTime" />
+                                    <HBox alignment="CENTER_LEFT" spacing="5.0" GridPane.columnIndex="1">
+                                       <children>
+                                          <ChoiceBox fx:id="cb_startHour" prefWidth="50.0" />
+                                          <Label maxHeight="1.7976931348623157E308" text=":" />
+                                          <ChoiceBox fx:id="cb_startMinute" prefWidth="50.0" />
+                                          <Label maxHeight="1.7976931348623157E308" text="%settings.time" HBox.hgrow="ALWAYS">
+                                             <HBox.margin>
+                                                <Insets />
+                                             </HBox.margin>
+                                          </Label>
+                                       </children>
+                                    </HBox>
+                                    <HBox alignment="CENTER_LEFT" spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                       <children>
+                                          <TextField fx:id="tf_timeMaximizer" prefWidth="50.0" promptText="20" />
+                                          <Label maxHeight="1.7976931348623157E308" text="%settings.minute" />
+                                       </children>
+                                    </HBox>
+                                    <Label minWidth="140.0" text="%settings.timeMaximizer" GridPane.rowIndex="2" />
+                                 </children>
+                              </GridPane>
+                              <Separator prefWidth="200.0">
+                                 <VBox.margin>
+                                    <Insets bottom="15.0" top="15.0" />
+                                 </VBox.margin>
+                              </Separator>
+                              <GridPane hgap="10.0" vgap="5.0">
+                                <columnConstraints>
+                                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" />
+                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="170.0" />
+                                </columnConstraints>
+                                <rowConstraints>
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                </rowConstraints>
+                                 <children>
+                                    <Label text="%settings.startStation" />
+                                    <Label text="%settings.endStation" GridPane.rowIndex="1" />
+                                    <ChoiceBox fx:id="cb_startStation" minWidth="200.0" GridPane.columnIndex="1" />
+                                    <ChoiceBox fx:id="cb_endStation" minWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                    <Label text="%settings.nextConnectionPosition" wrapText="true" GridPane.rowIndex="2" />
+                                    <TextField fx:id="tf_nextConnectionPosition" minWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                 </children>
+                                 <VBox.margin>
+                                    <Insets top="5.0" />
+                                 </VBox.margin>
+                              </GridPane>
+                              <Separator layoutX="10.0" layoutY="189.0">
+                                 <VBox.margin>
+                                    <Insets bottom="15.0" top="15.0" />
+                                 </VBox.margin>
+                              </Separator>
+                              <Label text="%settings.startPosition" />
+                              <GridPane hgap="10.0" vgap="5.0">
+                                <columnConstraints>
+                                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" />
+                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                </columnConstraints>
+                                <rowConstraints>
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                </rowConstraints>
+                                 <children>
+                                    <Label text="%latitude" />
+                                    <Label text="%longitude" GridPane.rowIndex="1" />
+                                    <TextField fx:id="tf_startPositionLat" alignment="CENTER_RIGHT" minWidth="200.0" promptText="0" GridPane.columnIndex="1" />
+                                    <TextField fx:id="tf_startPositionLng" alignment="CENTER_RIGHT" minWidth="200.0" promptText="0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                 </children>
+                                 <VBox.margin>
+                                    <Insets top="5.0" />
+                                 </VBox.margin>
+                              </GridPane>
+                              <Label layoutX="10.0" layoutY="155.0" text="%settings.endPosition">
+                                 <VBox.margin>
+                                    <Insets top="20.0" />
+                                 </VBox.margin>
+                              </Label>
+                              <GridPane hgap="10.0" layoutX="10.0" layoutY="177.0" vgap="5.0">
+                                 <columnConstraints>
+                                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" />
+                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                 </columnConstraints>
+                                 <rowConstraints>
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                 </rowConstraints>
+                                 <children>
+                                    <Label text="%latitude" />
+                                    <Label text="%longitude" GridPane.rowIndex="1" />
+                                    <TextField fx:id="tf_endPositionLat" alignment="CENTER_RIGHT" minWidth="200.0" promptText="0" GridPane.columnIndex="1" />
+                                    <TextField fx:id="tf_endPositionLng" alignment="CENTER_RIGHT" minWidth="200.0" promptText="0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                 </children>
+                                 <VBox.margin>
+                                    <Insets top="5.0" />
+                                 </VBox.margin>
+                              </GridPane>
+                           </children>
+                        </VBox>
+                        <ButtonBar maxWidth="1.7976931348623157E308" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                          <buttons>
+                            <Button cancelButton="true" mnemonicParsing="false" onMouseClicked="#close" text="%quit" />
+                              <Button defaultButton="true" mnemonicParsing="false" onMouseClicked="#saveEvaluationSettings" text="%save" />
+                          </buttons>
+                        </ButtonBar>
+                     </children>
+                     <padding>
+                        <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+                     </padding>
+                  </AnchorPane>
+            </content>
+          </Tab>
+            <Tab text="Items">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <VBox prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <children>
+                              <GridPane hgap="10.0" vgap="5.0">
+                                 <columnConstraints>
+                                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" />
+                                    <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
+                                 </columnConstraints>
+                                 <rowConstraints>
+                                    <RowConstraints vgrow="NEVER" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                                 </rowConstraints>
+                                 <children>
+                                    <Label maxHeight="1.7976931348623157E308" text="%settings.maxNumOfItems" GridPane.hgrow="ALWAYS" />
+                                    <TextField fx:id="tf_maxNumOfItems" alignment="CENTER_RIGHT" minWidth="200.0" onKeyReleased="#validateNumberInput" promptText="20" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" />
+                                    <Label maxHeight="1.7976931348623157E308" text="%settings.randomizeCoordinates" GridPane.rowIndex="5" />
+                                    <CheckBox fx:id="cb_randomizeGeoposition" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="5" />
+                                    <Label maxHeight="1.7976931348623157E308" text="%settings.useGeocoordinates" GridPane.rowIndex="4" />
+                                    <CheckBox fx:id="cb_useGeocoordinates" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                                    <Label maxHeight="1.7976931348623157E308" text="%settings.maxNumOfProductivityItems" GridPane.rowIndex="2" />
+                                    <TextField fx:id="tf_maxNumOfProductivityItems" alignment="CENTER_RIGHT" promptText="4" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                    <Label text="%settings.enableSerendipity" GridPane.rowIndex="6" />
+                                    <CheckBox fx:id="cb_serendipityEnabled" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                                    <Label text="%settings.enableWeighting" GridPane.rowIndex="7" />
+                                    <CheckBox fx:id="cb_weightingEnabled" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+                                 </children>
+                                 <VBox.margin>
+                                    <Insets />
+                                 </VBox.margin>
+                              </GridPane>
+                           </children>
+                        </VBox>
+                        <ButtonBar maxWidth="1.7976931348623157E308" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                           <buttons>
+                              <Button mnemonicParsing="false" onMouseClicked="#close" text="%quit" />
+                              <Button defaultButton="true" mnemonicParsing="false" onMouseClicked="#saveEvaluationSettings" text="%save" />
+                           </buttons>
+                        </ButtonBar>
+                     </children>
+                     <padding>
+                        <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+                     </padding>
+                  </AnchorPane>
+              </content>
+            </Tab>
+          <Tab text="%network">
+            <content>
+              <AnchorPane minHeight="0.0" minWidth="0.0">
+                     <children>
+                        <VBox maxHeight="1.7976931348623157E308" spacing="5.0" stylesheets="@style.css" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <children>
+                              <HBox fx:id="hbox_systemPrompt" maxWidth="1.7976931348623157E308" spacing="10.0" styleClass="system-prompt-error" visible="false">
+                                 <children>
+                                    <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true" styleClass="system-prompt-error">
+                                       <image>
+                                          <Image url="@../icons/icons8-Error.png" />
+                                       </image>
+                                    </ImageView>
+                                    <Label fx:id="lbl_systemPromptMessage" maxWidth="1.7976931348623157E308" text="Label" />
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                 </padding>
+                              </HBox>
+                              <GridPane hgap="10.0" vgap="5.0">
+                                <columnConstraints>
+                                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="170.0" />
+                                  <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
+                                </columnConstraints>
+                                <rowConstraints>
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                </rowConstraints>
+                                 <children>
+                                    <Label minWidth="140.0" text="%network" />
+                                    <CheckBox fx:id="cb_networkActivated" alignment="CENTER_RIGHT" graphicTextGap="0.0" mnemonicParsing="false" onMouseClicked="#toggleNetworkActivated" textAlignment="RIGHT" GridPane.columnIndex="1" />
+                                    <Label minWidth="140.0" text="MQTT-Broker IP" GridPane.rowIndex="1" />
+                                    <TextField fx:id="tf_brokerIP" alignment="CENTER_RIGHT" minWidth="200.0" promptText="0.0.0.0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                    <Label text="MQTT-Broker Port" GridPane.rowIndex="2" />
+                                    <TextField fx:id="tf_brokerPort" alignment="CENTER_RIGHT" promptText="1883" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                 </children>
+                              </GridPane>
+                              <Separator prefWidth="200.0">
+                                 <VBox.margin>
+                                    <Insets bottom="10.0" top="10.0" />
+                                 </VBox.margin>
+                              </Separator>
+                              <Label text="%connections" />
+                              <GridPane hgap="10.0" vgap="5.0" VBox.vgrow="NEVER">
+                                <columnConstraints>
+                                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="170.0" />
+                                  <ColumnConstraints hgrow="SOMETIMES" />
+                                </columnConstraints>
+                                <rowConstraints>
+                                    <RowConstraints vgrow="NEVER" />
+                                  <RowConstraints vgrow="NEVER" />
+                                  <RowConstraints vgrow="NEVER" />
+                                </rowConstraints>
+                                 <children>
+                                    <Label minWidth="140.0" text="CAVE" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                    <Label minWidth="140.0" text="HoloLens" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" />
+                                    <ImageView fx:id="iv_connectionCave" fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                       <image>
+                                          <Image url="@../icons/icons8-Wi-Fi%20off-50.png" />
+                                       </image>
+                                    </ImageView>
+                                    <ImageView fx:id="iv_connectionDataGlasses" fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                       <image>
+                                          <Image url="@../icons/icons8-Wi-Fi%20off-50.png" />
+                                       </image>
+                                    </ImageView>
+                                 </children>
+                                 <VBox.margin>
+                                    <Insets />
+                                 </VBox.margin>
+                              </GridPane>
+                           </children>
+                        </VBox>
+                        <ButtonBar maxWidth="1.7976931348623157E308" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                           <buttons>
+                              <Button mnemonicParsing="false" onMouseClicked="#close" text="%quit" />
+                              <Button defaultButton="true" mnemonicParsing="false" onMouseClicked="#saveNetworkSettings" text="%save" />
+                           </buttons>
+                        </ButtonBar>
+                     </children>
+                     <padding>
+                        <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+                     </padding>
+                  </AnchorPane>
+            </content>
+          </Tab>
+            <Tab text="%settings.other">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <VBox AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <children>
+                              <Label text="%openAccuracyEvaluationController" />
+                              <GridPane hgap="10.0" vgap="5.0">
+                                <columnConstraints>
+                                  <ColumnConstraints hgrow="SOMETIMES" />
+                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                </columnConstraints>
+                                <rowConstraints>
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                </rowConstraints>
+                                 <children>
+                                    <Label text="%settings.realtimeUpdateAccuracyEvaluationMap" wrapText="true" />
+                                    <CheckBox fx:id="cb_realtimeUpdateAccuracyEvaluationMap" mnemonicParsing="false" text="%yes" GridPane.columnIndex="1" />
+                                 </children>
+                                 <VBox.margin>
+                                    <Insets top="5.0" />
+                                 </VBox.margin>
+                              </GridPane>
+                              <Separator prefWidth="200.0">
+                                 <VBox.margin>
+                                    <Insets bottom="15.0" top="15.0" />
+                                 </VBox.margin>
+                              </Separator>
+                              <Label text="%setting.walkingSpeedTraining" />
+                              <GridPane hgap="10.0" vgap="5.0">
+                                 <columnConstraints>
+                                    <ColumnConstraints hgrow="SOMETIMES" />
+                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                 </columnConstraints>
+                                 <rowConstraints>
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                 </rowConstraints>
+                                 <children>
+                                    <Label text="%latitude" wrapText="true" />
+                                    <Label text="%longitude" GridPane.rowIndex="1" />
+                                    <TextField fx:id="tf_walkingSpeedTrainingPositionLat" alignment="CENTER_RIGHT" promptText="0" GridPane.columnIndex="1" />
+                                    <TextField fx:id="tf_walkingSpeedTrainingPositionLng" alignment="CENTER_RIGHT" promptText="0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                 </children>
+                                 <VBox.margin>
+                                    <Insets top="5.0" />
+                                 </VBox.margin>
+                              </GridPane>
+                           </children>
+                        </VBox>
+                        <ButtonBar maxWidth="1.7976931348623157E308" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                           <buttons>
+                              <Button cancelButton="true" mnemonicParsing="false" onMouseClicked="#close" text="%quit" />
+                              <Button defaultButton="true" mnemonicParsing="false" onMouseClicked="#saveEvaluationSettings" text="%save" />
+                           </buttons>
+                        </ButtonBar>
+                     </children>
+                     <padding>
+                        <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+                     </padding>
+                  </AnchorPane>
+              </content>
+            </Tab>
+        </tabs>
+      </TabPane>
+   </children>
+</AnchorPane>

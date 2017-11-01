@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+
+<AnchorPane maxHeight="600.0" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.doccuty.radarplus.view.controller.AboutController">
+   <children>
+      <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <TabPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" tabClosingPolicy="UNAVAILABLE">
+              <tabs>
+                <Tab text="Installation">
+                  <content>
+                    <AnchorPane maxHeight="1.7976931348623157E308">
+                           <children>
+                              <Text lineSpacing="1.0" strokeType="OUTSIDE" strokeWidth="0.0" text="RecoTool ist ein Controller, der für den Einsatz bei Wizard-of-Oz Versuchen konzipiert wurde.&#10;&#10;Zur Nutzung des Programms müssen folgende Pakete installiert sein:&#10;&#10;Java 8 (oder neuer)&#10;Maven&#10;MySQL 5.6&#10;Mosquitto Broker" wrappingWidth="500.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                           </children>
+                           <padding>
+                              <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+                           </padding>
+                        </AnchorPane>
+                  </content>
+                </Tab>
+                <Tab text="Netzwerk">
+                  <content>
+                    <AnchorPane maxHeight="1.7976931348623157E308">
+                           <children>
+                              <VBox prefWidth="100.0" spacing="15.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                 <children>
+                                    <Text lineSpacing="1.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Der Controller kommuniziert über das Newerk mit anderen Geräten, wozu das MQTT-Protokoll verwendet wird. Voraussetung für die Nutzung von MQTT ist eine Instanz des MQTT-Brokers." wrappingWidth="500.0" VBox.vgrow="ALWAYS" />
+                                    <TableView fx:id="tv_mqttCommands" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+                                      <columns>
+                                        <TableColumn fx:id="tc_command" minWidth="150.0" prefWidth="480.0" text="Befehl" />
+                                      </columns>
+                                    </TableView>
+                                 </children>
+                              </VBox>
+                           </children>
+                           <padding>
+                              <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+                           </padding>
+                        </AnchorPane>
+                  </content>
+                </Tab>
+              </tabs>
+            </TabPane>
+            <ButtonBar maxWidth="1.7976931348623157E308" prefWidth="200.0">
+              <buttons>
+                <Button mnemonicParsing="false" onMouseClicked="#close" text="%close" />
+              </buttons>
+               <padding>
+                  <Insets left="15.0" right="15.0" />
+               </padding>
+            </ButtonBar>
+         </children>
+      </VBox>
+   </children>
+   <padding>
+      <Insets bottom="15.0" />
+   </padding>
+</AnchorPane>

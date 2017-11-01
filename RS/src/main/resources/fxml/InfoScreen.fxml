@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Text?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.doccuty.radarplus.view.controller.InfoController">
+   <children>
+      <Text fx:id="txt_infoText" layoutX="75.0" layoutY="137.0" lineSpacing="1.5" strokeType="OUTSIDE" strokeWidth="0.0" text="Hallo %firstname%,&#10;&#10;die Initialisierung deines Profils ist nun abgeschlossen!&#10;Als nächstes wird deine Gehgeschwindigkeit in der CAVE in das System eintrainiert.&#10;Wende dich nun an den Versuchsleiter. Er wird dir weitere Informationen geben.&#10;&#10;Viel Spaß beim Versuch!" wrappingWidth="450.0" />
+   </children>
+</AnchorPane>

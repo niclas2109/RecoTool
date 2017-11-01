@@ -1,0 +1,9 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <UnityWSASolutionName>RadAr Aufenthalt</UnityWSASolutionName>
+        <UnityWSASolutionDir>C:\Users\uk012025\Documents\RadAR+ Aufenthalt\HoloLens\App\</UnityWSASolutionDir>
+        <UnityProjectDir>C:\Users\uk012025\Documents\RadAR+ Aufenthalt\HoloLens\</UnityProjectDir>
+        <UnityWSAPlayerDir>C:\Program Files\Unity\Editor\Data\PlaybackEngines\MetroSupport\</UnityWSAPlayerDir>
+        <UnityWSAToolsDir>$(UnityWSASolutionDir)Unity\Tools\</UnityWSAToolsDir>
+    </PropertyGroup>
+</Project>

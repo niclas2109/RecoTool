@@ -1,0 +1,4 @@
+C:\Users\uk012025\Documents\RadAR+ Aufenthalt\HoloLens\App\GeneratedProjects\UWP\Assembly-CSharp\Assembly-CSharp.csproj;x86
+C:\Users\uk012025\Documents\RadAR+ Aufenthalt\HoloLens\App\GeneratedProjects\UWP\Assembly-CSharp-firstpass\Assembly-CSharp-firstpass.csproj;x86
+C:\Users\uk012025\Documents\RadAR+ Aufenthalt\HoloLens\App\GeneratedProjects\UWP\Assembly-CSharp-firstpass\Assembly-CSharp-firstpass.csproj;x86
+C:\Users\uk012025\Documents\RadAR+ Aufenthalt\HoloLens\App\RadAr\RadAr.csproj;x86

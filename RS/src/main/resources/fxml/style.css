@@ -1,0 +1,92 @@
+AnchorPane, BorderPane, TabPane, Tab {
+	-fx-background-color: #ffffff;
+}
+
+.table-view .column-header .label, .table-column {
+	-fx-alignment: CENTER-LEFT;
+}
+
+.button-active {
+	-fx-background-color: #a8de93;
+	-fx-border-color: #65d261;
+}
+
+.button-start {
+	-fx-background-color: #a8de93;
+}
+
+.button-measure {
+	-fx-background-color: #ffffff;
+	-fx-border-color: #a2a2a2;
+}
+
+.button-measure.active {
+	-fx-background-color: #d7d7d7;
+	-fx-border-color: #a2a2a2;
+}
+
+.button-measure:pressed {
+	-fx-background-color: #cccccc;
+	-fx-border-color: #a2a2a2;
+}
+
+#btn-system-prompt {
+	-fx-background-color: #e4c46d;
+}
+
+.btn-cancel-navigation {
+	-fx-background-color: #c86034;
+	-fx-text-fill: #ffffff;
+}
+
+#hbox-system-prompt {
+	-fx-background-radius: 5;
+	-fx-border-width: 1;
+	-fx-border-style: solid;
+	-fx-border-radius: 5;
+	-fx-cursor: hand;
+}
+
+.system-prompt-success {
+	-fx-background-color: #b5f9a0;
+	-fx-border-color: #3ebe53;
+}
+
+.system-prompt-info {
+	-fx-background-color: #a1dcff;
+	-fx-border-color: #3894d3;
+}
+
+.system-prompt-error {
+	-fx-background-color: #ff8481;
+	-fx-border-color: #fb4a45;
+}
+
+.recommendation-box {
+	-fx-background-radius: 5;
+	-fx-border-width: 1;
+	-fx-border-style: solid;
+	-fx-border-radius: 5;
+	-fx-background-color: #e0e0e0;
+	-fx-border-color: #919191;
+}
+
+.training-button {
+	-fx-background-radius: 5;
+	-fx-border-width: 1;
+	-fx-border-style: solid;
+	-fx-border-radius: 5;
+	-fx-background-color: #f4f4f4;
+	-fx-border-color: #dcdcdc;	
+	-fx-cursor: hand;
+}
+
+.training-button:hover {
+	-fx-background-radius: 5;
+	-fx-border-width: 1;
+	-fx-border-style: solid;
+	-fx-border-radius: 5;
+	-fx-background-color: #fafafa;
+	-fx-border-color: #ececec;	
+	-fx-cursor: hand;
+}

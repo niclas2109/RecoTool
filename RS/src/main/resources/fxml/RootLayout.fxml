@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.input.KeyCodeCombination?>
+<?import javafx.scene.layout.BorderPane?>
+
+<BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="500.0" minWidth="600.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.doccuty.radarplus.view.controller.RootController">
+   <top>
+    <MenuBar maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="30.0" prefHeight="30.0">
+      <menus>
+        <Menu mnemonicParsing="false" text="%applicationTitle">
+          <items>
+            <MenuItem mnemonicParsing="false" onAction="#openSettings" text="%preferences">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="COMMA" control="ANY" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
+            <SeparatorMenuItem mnemonicParsing="false" />
+            <MenuItem fx:id="mi_about" mnemonicParsing="false" onAction="#openAboutScreen" text="%about" />
+            <SeparatorMenuItem mnemonicParsing="false" />
+            <MenuItem fx:id="mi_quitApplication" mnemonicParsing="false" onAction="#quitApplication" text="%quit" />
+          </items>
+        </Menu>
+            <Menu mnemonicParsing="false" text="%user">
+               <items>
+                  <MenuItem fx:id="mi_new" mnemonicParsing="false" onAction="#startNew" text="%new">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="N" control="ANY" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
+                  <MenuItem mnemonicParsing="false" onAction="#openUserProfile" text="%open">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="O" control="ANY" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem fx:id="mi_trainWalkingSpeed" mnemonicParsing="false" onAction="#openWalkingSpeedTrainerScreen" text="%trainWalkingSpeed">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="W" control="ANY" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem fx:id="mi_save" mnemonicParsing="false" onAction="#save" text="%save">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="S" control="ANY" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
+               </items>
+            </Menu>
+        <Menu mnemonicParsing="false" text="%view">
+          <items>
+            <MenuItem fx:id="mi_openRegisterScreen" mnemonicParsing="false" onAction="#openRegisterScreen" text="%registration">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="R" control="ANY" meta="UP" shift="DOWN" shortcut="UP" />
+                     </accelerator></MenuItem>
+            <MenuItem fx:id="mi_openTrainingScreen" mnemonicParsing="false" onAction="#openTrainingScreen" text="%training">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="T" control="ANY" meta="UP" shift="DOWN" shortcut="UP" />
+                     </accelerator></MenuItem>
+            <MenuItem fx:id="mi_openControlPanel" mnemonicParsing="false" onAction="#openControlPanel" text="%wozController">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="W" control="ANY" meta="UP" shift="DOWN" shortcut="UP" />
+                     </accelerator></MenuItem>
+          </items>
+        </Menu>
+            <Menu mnemonicParsing="false" text="%evaluation">
+              <items>
+                <MenuItem fx:id="mi_openSystemPromptController" disable="true" mnemonicParsing="false" onAction="#openSystemPromptController" text="%openSystemPromptController">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="P" control="ANY" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
+                  <MenuItem fx:id="mi_startNewEvaluation" disable="true" mnemonicParsing="false" onAction="#startNewEvaluation" text="%startNewEvaluation">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="E" control="ANY" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
+                  <MenuItem fx:id="mi_navigateToNextDestination" disable="true" mnemonicParsing="false" onAction="#navigateToNextDestination" text="%navigateToNextDestination" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem fx:id="mi_openAccuracyEvaluationScreen" disable="true" mnemonicParsing="false" onAction="#openAccuracyEvaluationScreen" text="%openAccuracyEvaluationController">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="A" control="ANY" meta="UP" shift="ANY" shortcut="UP" />
+                     </accelerator></MenuItem>
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem fx:id="mi_saveScoresToFile" disable="true" mnemonicParsing="false" onAction="#saveCurrentScores" text="%saveToFile" />
+                  <MenuItem fx:id="mi_readFromFile" mnemonicParsing="false" onAction="#openResultFileScreen" text="%readFromFile" />
+              </items>
+            </Menu>
+      </menus>
+    </MenuBar>
+   </top>
+</BorderPane>

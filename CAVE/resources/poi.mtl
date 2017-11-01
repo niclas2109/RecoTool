@@ -1,0 +1,23 @@
+# Blender MTL File: 'poi.blend'
+# Material Count: 2
+
+newmtl Material.001
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.800000 0.800000 0.800000
+Ni 1.000000
+d 1.000000
+illum 1
+map_Kd /Users/mac/Workspace/Masterarbeit/Aufenthalt/RS/src/main/resources/icons/icons8-High Priority.png
+
+newmtl SVGMat
+Ns 96.078431
+Ka 0.500000 0.500000 0.500000
+Kd 0.017265 0.222864 0.685963
+Ks 0.022640 0.136724 0.316638
+Ke 0.012086 0.156005 0.480174
+Ni 1.000000
+d 1.000000
+illum 2
