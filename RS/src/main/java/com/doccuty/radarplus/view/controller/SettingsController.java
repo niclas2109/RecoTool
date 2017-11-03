@@ -1,7 +1,9 @@
 package com.doccuty.radarplus.view.controller;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Calendar;
@@ -9,8 +11,11 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.jboss.logging.Logger;
+
 import com.doccuty.radarplus.model.SystemPrompt;
 import com.doccuty.radarplus.model.TrafficJunction;
+import com.doccuty.radarplus.MainApp;
 import com.doccuty.radarplus.model.RecoTool;
 import com.doccuty.radarplus.network.RecoToolMqttServer;
 import com.doccuty.radarplus.persistence.TrafficJunctionDAO;
@@ -38,6 +43,8 @@ import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
 public class SettingsController implements Initializable {
+
+	private final static Logger LOG = Logger.getLogger(SettingsController.class);
 
 	@FXML
 	TextField tf_brokerIP;
@@ -183,108 +190,109 @@ public class SettingsController implements Initializable {
 	public void init() {
 
 		ObjectMapper mapper = new ObjectMapper();
-		File from = new File(getClass().getClassLoader().getResource("settings/appSettings.json").getPath());
-
-		JsonNode json = null;
 
 		try {
-			json = mapper.readTree(from);
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
+			InputStream from = this.getClass().getResourceAsStream(MainApp.APP_SETTINGS_JSON_FILE);
 
-		// Set evaluation settings
-		Calendar startTime = Calendar.getInstance();
-		if (json.has("startTime")) {
-			startTime.setTimeInMillis(json.get("startTime").asLong());
-		}
+			if (from == null)
+				throw new FileNotFoundException("File " + MainApp.APP_SETTINGS_JSON_FILE + " not found!");
 
-		this.cb_startHour.getSelectionModel().select(startTime.get(Calendar.HOUR_OF_DAY));
-		this.cb_startMinute.getSelectionModel().select(startTime.get(Calendar.MINUTE));
+			JsonNode json = mapper.readTree(from);
 
-		int evaluationDuration = json.get("evaluationDuration").asInt();
+			// Set evaluation settings
+			Calendar startTime = Calendar.getInstance();
+			if (json.has("startTime")) {
+				startTime.setTimeInMillis(json.get("startTime").asLong());
+			}
 
-		try {
-			this.cb_evaluationDuration.getSelectionModel().select(evaluationDuration / 5 - 1);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+			this.cb_startHour.getSelectionModel().select(startTime.get(Calendar.HOUR_OF_DAY));
+			this.cb_startMinute.getSelectionModel().select(startTime.get(Calendar.MINUTE));
 
-		double timeMaximizer = json.get("timeMaximizer").asDouble();
-		this.tf_timeMaximizer.setText("" + Math.round(timeMaximizer / 60000));
+			int evaluationDuration = json.get("evaluationDuration").asInt();
 
-		// Set start and end station
-		TrafficJunction trafficJunction = null;
-
-		if (json.has("startTrafficJunction")) {
 			try {
-				trafficJunction = mapper.treeToValue(json.get("startTrafficJunction"), TrafficJunction.class);
-			} catch (JsonProcessingException e) {
+				this.cb_evaluationDuration.getSelectionModel().select(evaluationDuration / 5 - 1);
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}
-		this.cb_startStation.getSelectionModel().select(this.getIndexOfTraffixJunction(trafficJunction));
 
-		if (json.has("endTrafficJunction")) {
-			try {
-				trafficJunction = mapper.treeToValue(json.get("endTrafficJunction"), TrafficJunction.class);
-			} catch (JsonProcessingException e) {
-				e.printStackTrace();
+			double timeMaximizer = json.get("timeMaximizer").asDouble();
+			this.tf_timeMaximizer.setText("" + Math.round(timeMaximizer / 60000));
+
+			// Set start and end station
+			TrafficJunction trafficJunction = null;
+
+			if (json.has("startTrafficJunction")) {
+				try {
+					trafficJunction = mapper.treeToValue(json.get("startTrafficJunction"), TrafficJunction.class);
+				} catch (JsonProcessingException e) {
+					e.printStackTrace();
+				}
 			}
-		}
-		this.cb_endStation.getSelectionModel().select(this.getIndexOfTraffixJunction(trafficJunction));
+			this.cb_startStation.getSelectionModel().select(this.getIndexOfTraffixJunction(trafficJunction));
 
-		this.tf_startPositionLat.setText(json.get("startPosition").get("latitude").asText());
-		this.tf_startPositionLng.setText(json.get("startPosition").get("longitude").asText());
+			if (json.has("endTrafficJunction")) {
+				try {
+					trafficJunction = mapper.treeToValue(json.get("endTrafficJunction"), TrafficJunction.class);
+				} catch (JsonProcessingException e) {
+					e.printStackTrace();
+				}
+			}
+			this.cb_endStation.getSelectionModel().select(this.getIndexOfTraffixJunction(trafficJunction));
 
-		this.tf_endPositionLat.setText(json.get("endPosition").get("latitude").asText());
-		this.tf_endPositionLng.setText(json.get("endPosition").get("longitude").asText());
+			this.tf_startPositionLat.setText(json.get("startPosition").get("latitude").asText());
+			this.tf_startPositionLng.setText(json.get("startPosition").get("longitude").asText());
 
-		this.tf_nextConnectionPosition.setText(json.get("nextConnectionPosition").asText());
+			this.tf_endPositionLat.setText(json.get("endPosition").get("latitude").asText());
+			this.tf_endPositionLng.setText(json.get("endPosition").get("longitude").asText());
 
-		// Set item settings
-		this.tf_maxNumOfItems.setText(json.get("maxNumOfItems").asText());
-		this.tf_maxNumOfProductivityItems.setText(json.get("maxNumOfProductivityItems").asText());
+			this.tf_nextConnectionPosition.setText(json.get("nextConnectionPosition").asText());
 
-		this.cb_randomizeGeoposition.setSelected(json.get("randomizeItemGeoposition").asBoolean());
-		this.cb_useGeocoordinates.setSelected(json.get("useGeocoordinates").asBoolean());
+			// Set item settings
+			this.tf_maxNumOfItems.setText(json.get("maxNumOfItems").asText());
+			this.tf_maxNumOfProductivityItems.setText(json.get("maxNumOfProductivityItems").asText());
 
-		if (json.has("serendipityEnabled"))
-			this.cb_serendipityEnabled.setSelected(json.get("serendipityEnabled").asBoolean());
+			this.cb_randomizeGeoposition.setSelected(json.get("randomizeItemGeoposition").asBoolean());
+			this.cb_useGeocoordinates.setSelected(json.get("useGeocoordinates").asBoolean());
 
-		if (json.has("weightingEnabled"))
-			this.cb_weightingEnabled.setSelected(json.get("weightingEnabled").asBoolean());
+			if (json.has("serendipityEnabled"))
+				this.cb_serendipityEnabled.setSelected(json.get("serendipityEnabled").asBoolean());
 
-		if (json.has("realtimeUserPositionUpdateAccuracyEvaluationMap"))
-			this.cb_realtimeUpdateAccuracyEvaluationMap
-					.setSelected(json.get("realtimeUserPositionUpdateAccuracyEvaluationMap").asBoolean());
+			if (json.has("weightingEnabled"))
+				this.cb_weightingEnabled.setSelected(json.get("weightingEnabled").asBoolean());
 
-		if (json.has("walkingTrainingPosition")) {
-			this.tf_walkingSpeedTrainingPositionLat
-					.setText(json.get("walkingTrainingPosition").get("latitude").asText());
-			this.tf_walkingSpeedTrainingPositionLng
-					.setText(json.get("walkingTrainingPosition").get("longitude").asText());
-		}
+			if (json.has("realtimeUserPositionUpdateAccuracyEvaluationMap"))
+				this.cb_realtimeUpdateAccuracyEvaluationMap
+						.setSelected(json.get("realtimeUserPositionUpdateAccuracyEvaluationMap").asBoolean());
 
-		if (json.has("useAverageUsageDuration")) {
-			cb_useAverageUsageDuration.setSelected(json.get("useAverageUsageDuration").asBoolean());
-		}
+			if (json.has("walkingTrainingPosition")) {
+				this.tf_walkingSpeedTrainingPositionLat
+						.setText(json.get("walkingTrainingPosition").get("latitude").asText());
+				this.tf_walkingSpeedTrainingPositionLng
+						.setText(json.get("walkingTrainingPosition").get("longitude").asText());
+			}
 
-		if (json.has("maxNumOfItemsToUse")) {
-			tf_numberOfItemsToUse.setText(json.get("maxNumOfItemsToUse").asText());
-		}
+			if (json.has("useAverageUsageDuration")) {
+				cb_useAverageUsageDuration.setSelected(json.get("useAverageUsageDuration").asBoolean());
+			}
 
-		if (this.app == null)
-			return;
+			if (json.has("maxNumOfItemsToUse")) {
+				tf_numberOfItemsToUse.setText(json.get("maxNumOfItemsToUse").asText());
+			} else {
+				tf_numberOfItemsToUse.setText("0");
+			}
 
-		// Set MQTT settings
+			this.updateCheckBoxUsageAvUsageDuration(null);
 
-		if (this.app.getMQTTClient().isConnected()) {
-			this.cb_networkActivated.setSelected(true);
-			this.updateNetworkConnection();
-		}
+			if (this.app == null)
+				return;
 
-		try {
+			// Set MQTT settings
+
+			if (this.app.getMQTTClient().isConnected()) {
+				this.cb_networkActivated.setSelected(true);
+				this.updateNetworkConnection();
+			}
 
 			String brokerIP = json.get("brokerIP").asText();
 			String brokerPort = json.get("brokerPort").asText();
@@ -293,12 +301,13 @@ public class SettingsController implements Initializable {
 				this.tf_brokerIP.setText(brokerIP);
 				this.tf_brokerPort.setText(brokerPort);
 			}
+
+			// Set listener
+			this.app.getMQTTClient().addPropertyChangeListener(RecoToolMqttServer.PROPERTY_TOPIC_UPDATE, listener);
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-		// Set listener
-		this.app.getMQTTClient().addPropertyChangeListener(RecoToolMqttServer.PROPERTY_TOPIC_UPDATE, listener);
 	}
 
 	@FXML
@@ -328,6 +337,11 @@ public class SettingsController implements Initializable {
 		sT.set(Calendar.HOUR_OF_DAY, this.cb_startHour.getSelectionModel().getSelectedIndex());
 		sT.set(Calendar.MINUTE, this.cb_startMinute.getSelectionModel().getSelectedIndex());
 
+		int maxNumOfItems = 0;
+
+		if (!tf_numberOfItemsToUse.isDisabled() && !tf_numberOfItemsToUse.getText().equals(""))
+			maxNumOfItems = Integer.parseInt(tf_numberOfItemsToUse.getText());
+
 		this.app.setStartTime(sT);
 
 		this.app.getStartPosition().withLongitude(Double.parseDouble(this.tf_startPositionLng.getText()))
@@ -349,7 +363,7 @@ public class SettingsController implements Initializable {
 				.withUseGeocoordinates(this.cb_useGeocoordinates.isSelected())
 				.withRealtimeUserPositionUpdateAccuracyEvaluationMap(
 						this.cb_realtimeUpdateAccuracyEvaluationMap.isSelected())
-				.withMaxNumOfItemsToUse(Integer.parseInt(tf_numberOfItemsToUse.getText()));
+				.withMaxNumOfItemsToUse(maxNumOfItems);
 
 		this.app.getRecommender().withSerendipityEnabled(this.cb_serendipityEnabled.isSelected())
 				.withWeightingEnabled(this.cb_weightingEnabled.isSelected());
@@ -451,7 +465,7 @@ public class SettingsController implements Initializable {
 
 	@FXML
 	public void setMaxNumberOfItemsToZero(MouseEvent ev) {
-		if(this.cb_useAverageUsageDuration.isSelected()) {
+		if (this.cb_useAverageUsageDuration.isSelected()) {
 			this.tf_numberOfItemsToUse.setDisable(true);
 			this.tf_numberOfItemsToUse.setText("0");
 		} else {

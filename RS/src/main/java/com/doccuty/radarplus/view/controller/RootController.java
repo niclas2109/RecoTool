@@ -1,6 +1,7 @@
 package com.doccuty.radarplus.view.controller;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -14,9 +15,13 @@ import com.doccuty.radarplus.recommender.Recommender;
 import com.doccuty.radarplus.view.listener.RootListener;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import javafx.animation.Animation;
+import javafx.animation.Interpolator;
+import javafx.animation.RotateTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.Scene;
@@ -25,10 +30,12 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.MenuItem;
+import javafx.scene.image.ImageView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
-public class RootController {
+public class RootController implements Initializable {
 
 	@FXML
 	MenuItem mi_new;
@@ -66,6 +73,9 @@ public class RootController {
 	@FXML
 	MenuItem mi_quitApplication;
 
+	@FXML
+	ImageView iv_loading;
+
 	RecoTool app;
 
 	private BorderPane rootLayout;
@@ -76,13 +86,29 @@ public class RootController {
 
 	RootListener listener;
 
+	RotateTransition rt;
+
 	public RootController() {
 		this.listener = new RootListener(this);
 		this.secondStage = new Stage();
 		this.secondStage.initModality(Modality.APPLICATION_MODAL);
 	}
 
+	@Override
+	public void initialize(URL location, ResourceBundle resources) {
+		rt = new RotateTransition(Duration.millis(3000), iv_loading);
+		rt.setByAngle(360);
+		rt.setCycleCount(Animation.INDEFINITE);
+		rt.setInterpolator(Interpolator.LINEAR);
+		rt.play();
+	}
+
 	public void init() {
+
+		if (this.app == null)
+			return;
+
+		rt.stop();
 
 		this.mi_save.setDisable(true);
 		this.mi_trainWalkingSpeed.setDisable(true);
@@ -117,7 +143,7 @@ public class RootController {
 			// Load person overview.
 			FXMLLoader loader = new FXMLLoader();
 			loader.setLocation(getClass().getClassLoader().getResource("fxml/SettingsScreen.fxml"));
-			loader.setResources(ResourceBundle.getBundle("rectool", MainApp.getSystemLocale()));
+			loader.setResources(ResourceBundle.getBundle(MainApp.LOCALES_FILE_PATH, MainApp.getSystemLocale()));
 
 			AnchorPane personOverview = (AnchorPane) loader.load();
 			Scene s = new Scene(personOverview);
@@ -145,7 +171,7 @@ public class RootController {
 			// Load person overview.
 			FXMLLoader loader = new FXMLLoader();
 			loader.setLocation(getClass().getClassLoader().getResource("fxml/OpenUserProfileScreen.fxml"));
-			loader.setResources(ResourceBundle.getBundle("rectool", MainApp.getSystemLocale()));
+			loader.setResources(ResourceBundle.getBundle(MainApp.LOCALES_FILE_PATH, MainApp.getSystemLocale()));
 
 			AnchorPane personOverview = (AnchorPane) loader.load();
 			Scene s = new Scene(personOverview);
@@ -173,7 +199,7 @@ public class RootController {
 			// Load person overview.
 			FXMLLoader loader = new FXMLLoader();
 			loader.setLocation(getClass().getClassLoader().getResource("fxml/WalkingSpeedTrainerScreen.fxml"));
-			loader.setResources(ResourceBundle.getBundle("rectool", MainApp.getSystemLocale()));
+			loader.setResources(ResourceBundle.getBundle(MainApp.LOCALES_FILE_PATH, MainApp.getSystemLocale()));
 
 			AnchorPane personOverview = (AnchorPane) loader.load();
 			Scene s = new Scene(personOverview);
@@ -206,7 +232,7 @@ public class RootController {
 			// Load person overview.
 			FXMLLoader loader = new FXMLLoader();
 			loader.setLocation(getClass().getClassLoader().getResource("fxml/AccuracyEvaluationScreen.fxml"));
-			loader.setResources(ResourceBundle.getBundle("rectool", MainApp.getSystemLocale()));
+			loader.setResources(ResourceBundle.getBundle(MainApp.LOCALES_FILE_PATH, MainApp.getSystemLocale()));
 
 			AnchorPane personOverview = (AnchorPane) loader.load();
 			Scene s = new Scene(personOverview);
@@ -239,7 +265,7 @@ public class RootController {
 			// Load person overview.
 			FXMLLoader loader = new FXMLLoader();
 			loader.setLocation(getClass().getClassLoader().getResource("fxml/SavedItemScores.fxml"));
-			loader.setResources(ResourceBundle.getBundle("rectool", MainApp.getSystemLocale()));
+			loader.setResources(ResourceBundle.getBundle(MainApp.LOCALES_FILE_PATH, MainApp.getSystemLocale()));
 
 			AnchorPane personOverview = (AnchorPane) loader.load();
 			Scene s = new Scene(personOverview);
@@ -266,7 +292,7 @@ public class RootController {
 			// Load person overview.
 			FXMLLoader loader = new FXMLLoader();
 			loader.setLocation(getClass().getClassLoader().getResource("fxml/AboutScreen.fxml"));
-			loader.setResources(ResourceBundle.getBundle("rectool", MainApp.getSystemLocale()));
+			loader.setResources(ResourceBundle.getBundle(MainApp.LOCALES_FILE_PATH, MainApp.getSystemLocale()));
 
 			AnchorPane personOverview = (AnchorPane) loader.load();
 			Scene s = new Scene(personOverview);
@@ -293,7 +319,7 @@ public class RootController {
 			// Load person overview.
 			FXMLLoader loader = new FXMLLoader();
 			loader.setLocation(getClass().getClassLoader().getResource("fxml/SystemPromptScreen.fxml"));
-			loader.setResources(ResourceBundle.getBundle("rectool", MainApp.getSystemLocale()));
+			loader.setResources(ResourceBundle.getBundle(MainApp.LOCALES_FILE_PATH, MainApp.getSystemLocale()));
 
 			AnchorPane personOverview = (AnchorPane) loader.load();
 			Scene s = new Scene(personOverview);
@@ -420,7 +446,7 @@ public class RootController {
 			// Load person overview.
 			FXMLLoader loader = new FXMLLoader();
 			loader.setLocation(getClass().getClassLoader().getResource("fxml/RegisterScreen.fxml"));
-			loader.setResources(ResourceBundle.getBundle("rectool", MainApp.getSystemLocale()));
+			loader.setResources(ResourceBundle.getBundle(MainApp.LOCALES_FILE_PATH, MainApp.getSystemLocale()));
 
 			AnchorPane personOverview = (AnchorPane) loader.load();
 
@@ -458,7 +484,7 @@ public class RootController {
 			// Load person overview.
 			FXMLLoader loader = new FXMLLoader();
 			loader.setLocation(getClass().getClassLoader().getResource("fxml/TrainingScreen.fxml"));
-			loader.setResources(ResourceBundle.getBundle("rectool", MainApp.getSystemLocale()));
+			loader.setResources(ResourceBundle.getBundle(MainApp.LOCALES_FILE_PATH, MainApp.getSystemLocale()));
 			AnchorPane personOverview = (AnchorPane) loader.load();
 
 			// Set person overview into the center of root layout.
@@ -487,7 +513,7 @@ public class RootController {
 			// Load person overview.
 			FXMLLoader loader = new FXMLLoader();
 			loader.setLocation(getClass().getClassLoader().getResource("fxml/InfoScreen.fxml"));
-			loader.setResources(ResourceBundle.getBundle("rectool", MainApp.getSystemLocale()));
+			loader.setResources(ResourceBundle.getBundle(MainApp.LOCALES_FILE_PATH, MainApp.getSystemLocale()));
 			AnchorPane personOverview = (AnchorPane) loader.load();
 
 			// Set person overview into the center of root layout.
@@ -523,7 +549,7 @@ public class RootController {
 			// Load person overview.
 			FXMLLoader loader = new FXMLLoader();
 			loader.setLocation(getClass().getClassLoader().getResource("fxml/ControllerScreen.fxml"));
-			loader.setResources(ResourceBundle.getBundle("rectool", MainApp.getSystemLocale()));
+			loader.setResources(ResourceBundle.getBundle(MainApp.LOCALES_FILE_PATH, MainApp.getSystemLocale()));
 
 			AnchorPane personOverview = (AnchorPane) loader.load();
 

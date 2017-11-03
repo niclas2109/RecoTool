@@ -27,27 +27,7 @@ public class ItemPersistenceTest {
        
         assertNotEquals("Image", item.getImage(), null);
 	}
-	
-	@Test
-	@Transactional
-	public void deleteItem() {
-         
-        ItemDAO ud = new ItemDAO();
-              
-        Item item = new Item();
-        item.withName("Café Panama");
-        
-        ud.save(item);
-        
-        int oldSize = ud.findAll().size();
 
-        ud.delete(item);
-        
-        System.out.println(item);
-        
-        assertEquals("Not deleted",oldSize-1, ud.findAll().size());
-	}
-	
 	/**
 	 * generating random unique id
 	 * @return

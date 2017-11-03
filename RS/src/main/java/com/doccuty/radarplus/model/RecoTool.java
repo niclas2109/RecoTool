@@ -2,8 +2,9 @@ package com.doccuty.radarplus.model;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -26,6 +27,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.doccuty.radarplus.MainApp;
 import com.doccuty.radarplus.evaluation.ResultTracker;
 import com.doccuty.radarplus.network.RecoToolMqttServer;
 import com.doccuty.radarplus.persistence.AttributeDAO;
@@ -127,10 +129,17 @@ public class RecoTool {
 	}
 
 	public void init() {
+		
+
+		ObjectMapper mapper = new ObjectMapper();
+		InputStream from = null;
+		
 		try {
 			// Set setting parameters
-			ObjectMapper mapper = new ObjectMapper();
-			File from = new File(getClass().getClassLoader().getResource("settings/appSettings.json").getPath());
+			from = this.getClass().getResourceAsStream(MainApp.APP_SETTINGS_JSON_FILE);
+
+			if(from == null)
+				throw new FileNotFoundException("File "+MainApp.APP_SETTINGS_JSON_FILE+" not found!");
 
 			JsonNode json = mapper.readTree(from);
 
@@ -161,9 +170,10 @@ public class RecoTool {
 			if (json.has("endTrafficJunction"))
 				this.endTrafficJunction = mapper.treeToValue(json.get("endTrafficJunction"), TrafficJunction.class);
 
+			
 			this.startPosition.withLatitude(json.get("startPosition").get("latitude").asDouble())
 					.withLongitude(json.get("startPosition").get("longitude").asDouble());
-
+			
 			this.endPosition.withLatitude(json.get("endPosition").get("latitude").asDouble())
 					.withLongitude(json.get("endPosition").get("longitude").asDouble());
 
@@ -200,18 +210,30 @@ public class RecoTool {
 
 			this.server.withBrokerURI(brokerIP).withBrokerPort(brokerPort);
 
+		} catch (NullPointerException | IOException e) {
+			e.printStackTrace();
+		}
+
+		
+		try {
 			// Load system prompt
-
 			this.prompts = new ArrayList<SystemPrompt>();
+			
+			from = this.getClass().getResourceAsStream(MainApp.SYSTEM_PROMPTS_JSON_FILE);
+			
 
-			from = new File(getClass().getClassLoader().getResource("settings/systemPromptMessages.json").getPath());
+			if(from == null)
+				throw new FileNotFoundException("File "+MainApp.SYSTEM_PROMPTS_JSON_FILE+" not found!");
+			
+
 			for (SystemPrompt sP : mapper.readValue(from, SystemPrompt[].class))
 				this.prompts.add(sP);
 
 		} catch (NullPointerException | IOException e) {
 			e.printStackTrace();
 		}
-
+		
+		
 		List<Item> t = this.retreiveItemsFromDB().stream().filter(i -> i.getIsTrainingItem())
 				.collect(Collectors.toList());
 

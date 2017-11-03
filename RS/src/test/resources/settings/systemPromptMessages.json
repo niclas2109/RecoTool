@@ -1,0 +1,86 @@
+[
+	{
+		"id": 1,
+		"message": "Eigener Text"
+	},
+	{
+		"id": 2,
+		"mode": "system-prompt-error",
+		"message": "Dein Anschluss hat eine Verspätung von ca. 50 min."
+	},
+	{
+		"id": 3,
+		"mode": "system-prompt-info",
+		"message": "Soll dir RadAR+ helfen, deinen Aufenthalt zu gestalten?"
+	},
+	{
+		"id": 4,
+		"mode": "system-prompt-info",
+		"message": "Der %mode% ist aktiviert!"
+	},
+	{
+		"id": 5,
+		"mode": "system-prompt-info",
+		"message": "%firstname%, du bist in %startTrafficJunction% angekommen!"
+	},
+	{
+		"id": 6,
+		"mode": "system-prompt-info",
+		"message": "Du hast noch %duration% min Zeit bis dein Zug abfährt. Was möchtest du gerne tun?"
+	},
+	{
+		"id": 7,
+		"mode": "system-prompt-info",
+		"message": "Du hast noch %duration% min Zeit bis dein Zug abfährt."
+	},
+	{
+		"id": 8,
+		"mode": "system-prompt-info",
+		"message": "Versuchsleiter: An %item% verbringst du nun %min% min."
+	},
+	{
+		"id": 9,
+		"mode": "system-prompt-info",
+		"message": "Dein Zug fährt in ca. %duration% min ab. Die Navigation zum Gleis wird gestartet!"
+	},
+	{
+		"id": 10,
+		"mode": "system-prompt-info",
+		"message": "Du hast das Gleis für deinen nächsten Anschluss erreicht. Der Zug steht bereits am Gleis!"
+	},
+	{
+		"id": 11,
+		"mode": "system-prompt-info",
+		"message": "Dieser Durchlauf des Versuchs ist nun beendet. Wie es weitergeht, erklärt Ihnen der Versuchleiter!"
+	},
+	{
+		"id": 12,
+		"mode": "system-prompt-info",
+		"message": "Die Route zu %navigationDestination% wird berechnet!"
+	},
+	{
+		"id": 13,
+		"mode": "system-prompt-info",
+		"message": "Die Navigation zu %navigationDestination% wurde gestartet!"
+	},
+	{
+		"id": 14,
+		"mode": "system-prompt-error",
+		"message": "Es konnte keine Route zu %navigationDestination% gefunden werden. Bitte versuche es von einer anderen Position!"
+	},
+	{
+		"id": 15,
+		"mode": "system-prompt-info",
+		"message": "Die Navigation zu %navigationDestination% wurde abgebrochen."
+	},
+	{
+		"id": 16,
+		"mode": "system-prompt-info",
+		"message": "Du hast %navigationDestination% erreicht!"
+	},
+	{
+		"id": 17,
+		"mode": "system-prompt-info",
+		"message": "%firstname%, dein Anschluss fährt von %nextConnectionPosition%!"
+	}
+]

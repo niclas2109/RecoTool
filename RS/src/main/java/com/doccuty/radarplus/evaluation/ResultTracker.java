@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,8 +25,15 @@ public class ResultTracker {
 	private static String eol;
 
 	public ResultTracker() {
-		ResultTracker.path = getClass().getClassLoader().getResource("evaluation").getPath().trim();
+
 		ResultTracker.eol = System.getProperty("line.separator");
+		
+		URL url = getClass().getClassLoader().getResource("evaluation");
+
+		if(url == null)
+			return;
+		
+		ResultTracker.path = url.getPath().trim();
 	}
 
 	/**

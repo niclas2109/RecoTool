@@ -150,6 +150,10 @@ public class ContextBasedPostFilter {
 	 * Check, if item usage is possible due to time and distance factors
 	 */
 	private boolean checkReachability(Item item, Setting setting, User user) {
+
+		if (this.recommender.getStudyApp() == null)
+			return true;
+
 		if (item.getGeoposition() != null && setting.getGeoposition() != null) {
 
 			// calculate current distance to item

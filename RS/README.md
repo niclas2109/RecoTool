@@ -24,3 +24,10 @@ Database configurations can be made in
 
 
 - Settings
+
+
+#Compilation
+
+Create an executable *.jar by executing:
+
+	mvn clean compile assembly:single

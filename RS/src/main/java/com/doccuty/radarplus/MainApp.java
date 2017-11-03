@@ -14,81 +14,89 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 public class MainApp extends Application {
-	
+
+	public static final String APP_SETTINGS_JSON_FILE = "/settings/appSettings.json";
+	public static final String SYSTEM_PROMPTS_JSON_FILE = "/settings/systemPrompts.json";
+
+	public static final String LOCALES_FILE_PATH = "locales.recotool";
+
 	private Stage primaryStage;
-    private BorderPane rootLayout;
-    
-    public static RecoTool app;
+	private BorderPane rootLayout;
 
-    RootController rootController;
+	public static RecoTool app;
 
-    
-    public static void main(String[] args) {
-        launch(args);
-    }    
-    
-    @Override
-    public void start(Stage primaryStage) {
-    	
-        this.primaryStage = primaryStage;
-        this.primaryStage.setTitle("RecoTool");
-        this.primaryStage.setMaximized(true);
-        this.primaryStage.setOnCloseRequest(e -> quitEvent());
+	RootController rootController;
 
-        initRootLayout();
+	public static void main(String[] args) {
+		launch(args);
+	}
 
-        app = new RecoTool();
-        app.init();
-        
-        rootController.withStudyApp(app).showRegisterScreen();
-        rootController.init();
-    }
+	@Override
+	public void start(Stage primaryStage) {
 
-    private void quitEvent() {
-    		MainApp.app.disconnectMQTT();
-    		System.exit(0);
-    }
-    
-    /**
-     * Initializes the root layout.
-     */
-    public void initRootLayout() {
-        try {
-      
-            // Load root layout from fxml file.
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getClassLoader().getResource("fxml/RootLayout.fxml"));
-            loader.setResources(ResourceBundle.getBundle("rectool", getSystemLocale()));
-            
-            rootLayout = (BorderPane) loader.load();
+		this.primaryStage = primaryStage;
+		this.primaryStage.setTitle("RecoTool");
+		this.primaryStage.setMaximized(true);
+		this.primaryStage.setOnCloseRequest(e -> quitEvent());
 
-            // Show the scene containing the root layout.
-            Scene scene = new Scene(rootLayout);
-            primaryStage.setScene(scene);
-            primaryStage.show();
-            
-            rootController = (RootController) loader.getController();
-            rootController.withRootLayout(rootLayout).withScene(scene).withStage(primaryStage);
-            
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+		initRootLayout();
 
-    /**
-     * Returns the main stage.
-     * @return
-     */
-    public Stage getPrimaryStage() {
-        return primaryStage;
-    }
-       
-    /**
-     * Get system language
-     * @return
-     */ 
-    public static Locale getSystemLocale(){
-    	   String country = System.getProperty("user.country"); 
-    	   return new Locale(String.format("%s", country.toLowerCase(),country.toUpperCase()));
-    	}
+		app = new RecoTool();
+		app.init();
+
+		rootController.withStudyApp(app);
+		rootController.init();
+
+		rootController.showRegisterScreen();
+	}
+
+	private void quitEvent() {
+		MainApp.app.disconnectMQTT();
+		System.exit(0);
+	}
+
+	/**
+	 * Initializes the root layout.
+	 */
+	public void initRootLayout() {
+		try {
+
+			// Load root layout from fxml file.
+			FXMLLoader loader = new FXMLLoader();
+			loader.setLocation(getClass().getClassLoader().getResource("fxml/RootLayout.fxml"));
+			loader.setResources(ResourceBundle.getBundle(MainApp.LOCALES_FILE_PATH, getSystemLocale()));
+
+			rootLayout = (BorderPane) loader.load();
+
+			// Show the scene containing the root layout.
+			Scene scene = new Scene(rootLayout);
+			primaryStage.setScene(scene);
+			primaryStage.show();
+
+			rootController = (RootController) loader.getController();
+			rootController.withRootLayout(rootLayout).withScene(scene).withStage(primaryStage);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Returns the main stage.
+	 * 
+	 * @return
+	 */
+	public Stage getPrimaryStage() {
+		return primaryStage;
+	}
+
+	/**
+	 * Get system language
+	 * 
+	 * @return
+	 */
+	public static Locale getSystemLocale() {
+		String country = System.getProperty("user.country");
+		return new Locale(String.format("%s", country.toLowerCase(), country.toUpperCase()));
+	}
 }
