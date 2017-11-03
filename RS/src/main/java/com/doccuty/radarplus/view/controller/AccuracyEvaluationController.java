@@ -171,6 +171,7 @@ public class AccuracyEvaluationController implements Initializable {
 			this.app.generateRecommendations();
 		}
 
+		// Add optional handler for realtime user position updates
 		if (this.app.getRealtimeUserPositionUpdateAccuracyEvaluationMap()) {
 			this.app.getSetting().addPropertyChangeListener(Setting.PROPERTY_UPDATE_USER_POSITION, listener);
 		}
@@ -178,7 +179,7 @@ public class AccuracyEvaluationController implements Initializable {
 		// init time
 		this.app.getSetting().withGeoposition(this.app.getStartPosition())
 				.withNextDestination(this.app.getEndPosition())
-				.withCurrentDepartureTime(new Date(new Date().getTime() + this.app.getEvaluationDuration().toMillis()))
+				.withCurrentDepartureTime(new Date(this.app.getStartTime().getTimeInMillis() + this.app.getEvaluationDuration().toMillis()))
 				.withEstimatedDepartureTime(this.app.getSetting().getCurrentDepartureTime());
 
 		this.lbl_timeToDepature.setText(Duration.ofMillis(this.app.getSetting().getTimeToDeparture()).toMinutes() + "");

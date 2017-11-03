@@ -120,6 +120,12 @@ public class SettingsController implements Initializable {
 	@FXML
 	TextField tf_walkingSpeedTrainingPositionLng;
 
+	@FXML
+	CheckBox cb_useAverageUsageDuration;
+
+	@FXML
+	TextField tf_numberOfItemsToUse;
+
 	ObservableList<TrafficJunction> trafficJunctions;
 
 	private Stage stage;
@@ -260,6 +266,14 @@ public class SettingsController implements Initializable {
 					.setText(json.get("walkingTrainingPosition").get("longitude").asText());
 		}
 
+		if (json.has("useAverageUsageDuration")) {
+			cb_useAverageUsageDuration.setSelected(json.get("useAverageUsageDuration").asBoolean());
+		}
+
+		if (json.has("maxNumOfItemsToUse")) {
+			tf_numberOfItemsToUse.setText(json.get("maxNumOfItemsToUse").asText());
+		}
+
 		if (this.app == null)
 			return;
 
@@ -334,7 +348,8 @@ public class SettingsController implements Initializable {
 				.withRandomizeItemGeoposition(this.cb_randomizeGeoposition.isSelected())
 				.withUseGeocoordinates(this.cb_useGeocoordinates.isSelected())
 				.withRealtimeUserPositionUpdateAccuracyEvaluationMap(
-						this.cb_realtimeUpdateAccuracyEvaluationMap.isSelected());
+						this.cb_realtimeUpdateAccuracyEvaluationMap.isSelected())
+				.withMaxNumOfItemsToUse(Integer.parseInt(tf_numberOfItemsToUse.getText()));
 
 		this.app.getRecommender().withSerendipityEnabled(this.cb_serendipityEnabled.isSelected())
 				.withWeightingEnabled(this.cb_weightingEnabled.isSelected());
@@ -416,11 +431,32 @@ public class SettingsController implements Initializable {
 		((ObjectNode) json).set("walkingTrainingPosition",
 				mapper.readTree(mapper.writeValueAsString(this.app.getWalkingTrainingPosition())));
 
+		((ObjectNode) json).set("maxNumOfItemsToUse",
+				mapper.readTree(mapper.writeValueAsString(this.app.getMaxNumOfItemsToUse())));
+
 		((ObjectNode) json).put("networkEnabled", this.cb_networkActivated.isSelected());
 		((ObjectNode) json).put("brokerIP", this.tf_brokerIP.getText());
 		((ObjectNode) json).put("brokerPort", this.tf_brokerPort.getText());
 
 		mapper.writeValue(f, json);
+	}
+
+	@FXML
+	public void updateCheckBoxUsageAvUsageDuration(KeyEvent ev) {
+		boolean active = Integer.parseInt(this.tf_numberOfItemsToUse.getText()) <= 0;
+		this.cb_useAverageUsageDuration.setSelected(active);
+
+		setMaxNumberOfItemsToZero(null);
+	}
+
+	@FXML
+	public void setMaxNumberOfItemsToZero(MouseEvent ev) {
+		if(this.cb_useAverageUsageDuration.isSelected()) {
+			this.tf_numberOfItemsToUse.setDisable(true);
+			this.tf_numberOfItemsToUse.setText("0");
+		} else {
+			this.tf_numberOfItemsToUse.setDisable(false);
+		}
 	}
 
 	@FXML

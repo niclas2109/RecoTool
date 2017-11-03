@@ -66,6 +66,7 @@ public class RecoTool {
 
 	private int maxNumOfItems;
 	private int maxNumOfProductivityItems;
+	private int maxNumOfItemsToUse;
 
 	private boolean randomizeItemGeoposition;
 
@@ -138,8 +139,12 @@ public class RecoTool {
 			boolean useGeocoordinates = json.get("useGeocoordinates").asBoolean();
 
 			int maxNumOfItems = json.get("maxNumOfItems").asInt();
-
 			int maxNumOfProductivityItems = json.get("maxNumOfProductivityItems").asInt();
+
+			int maxNumOfItemsToUse = 0;
+			
+			if (json.has("maxNumOfItemsToUse"))
+				maxNumOfItemsToUse = json.get("maxNumOfItemsToUse").asInt();
 
 			if (json.has("startTime")) {
 				startTime.setTimeInMillis(json.get("startTime").asLong());
@@ -165,12 +170,14 @@ public class RecoTool {
 			this.walkingTrainingPosition.withLatitude(json.get("walkingTrainingPosition").get("latitude").asDouble())
 					.withLongitude(json.get("walkingTrainingPosition").get("longitude").asDouble());
 
+			
 			RecoTool.setting.withGeoposition(this.startPosition).setNextDeparture(this.endPosition);
 
 			this.withVersion(version).withRandomizeItemGeoposition(randomize).withMaxNumOfItems(maxNumOfItems)
 					.withMaxNumOfProductivityItems(maxNumOfProductivityItems)
 					.withEvaluationDuration(Duration.ofMinutes(evaluationDuration))
-					.withUseGeocoordinates(useGeocoordinates).withStartTime(startTime);
+					.withUseGeocoordinates(useGeocoordinates).withStartTime(startTime)
+					.withMaxNumOfItems(maxNumOfItemsToUse);
 
 			double timeMaximizer = json.get("timeMaximizer").asDouble();
 			this.recommender.getContextBasedPostFilter().setTimeMaximizer(timeMaximizer);
@@ -271,7 +278,7 @@ public class RecoTool {
 			int oldLength = arr.length();
 			List<Integer> s = new ArrayList<Integer>();
 			while (arr.length() <= oldLength + this.maxNumOfProductivityItems && s.size() <= productivityItems.size()) {
-				
+
 				int idx = rand.nextInt(productivityItems.size());
 
 				if (!s.contains(idx)) {
@@ -874,8 +881,17 @@ public class RecoTool {
 		this.resultTracker.writeToCSV(this.getRecommender().getRecommendations(), this.getCurrentUser(),
 				RecoTool.setting);
 
-		RecoTool.setting.setCurrentTime(new Date(
-				RecoTool.setting.getCurrentTime().getTime() + usedItem.getEstimatedUsageDuration().toMillis()));
+		Date timeOfUsage = null;
+
+		if (maxNumOfItemsToUse > 0) {
+			timeOfUsage = new Date(RecoTool.setting.getCurrentTime().getTime()
+					+ this.getEvaluationDuration().toMinutes() / (this.maxNumOfItems + 5));
+		} else {
+			timeOfUsage = new Date(
+					RecoTool.setting.getCurrentTime().getTime() + usedItem.getEstimatedUsageDuration().toMillis());
+		}
+
+		RecoTool.setting.setCurrentTime(timeOfUsage);
 
 		this.updateBySetting(this.user);
 
@@ -1291,6 +1307,21 @@ public class RecoTool {
 
 	public RecoTool withMaxNumOfProductivityItems(int value) {
 		this.setMaxNumOfProductivityItems(value);
+		return this;
+	}
+
+	// ===================================================
+
+	public int getMaxNumOfItemsToUse() {
+		return this.maxNumOfItemsToUse;
+	}
+
+	public void setMaxNumOfItemsToUse(int value) {
+		this.maxNumOfItemsToUse = value;
+	}
+
+	public RecoTool withMaxNumOfItemsToUse(int value) {
+		this.setMaxNumOfItemsToUse(value);
 		return this;
 	}
 
