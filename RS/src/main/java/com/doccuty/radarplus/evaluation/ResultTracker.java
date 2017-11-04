@@ -6,13 +6,13 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.doccuty.radarplus.model.Item;
+import com.doccuty.radarplus.model.RecoTool;
 import com.doccuty.radarplus.model.Setting;
 import com.doccuty.radarplus.model.User;
 
@@ -21,19 +21,10 @@ public class ResultTracker {
 	public static final String PROPERTY_SAVED_ITEM_SCORES = "savedItemScores";
 	public static final String PROPERTY_FAILED_TO_SAVE_ITEM_SCORES = "failedToSaveItemScores";
 
-	private static String path;
 	private static String eol;
 
 	public ResultTracker() {
-
 		ResultTracker.eol = System.getProperty("line.separator");
-		
-		URL url = getClass().getClassLoader().getResource("evaluation");
-
-		if(url == null)
-			return;
-		
-		ResultTracker.path = url.getPath().trim();
 	}
 
 	/**
@@ -66,7 +57,9 @@ public class ResultTracker {
 			filename += ".csv";
 		}
 
-		try (Writer writer = new FileWriter(ResultTracker.path + "/" + filename)) {
+		String path = RecoTool.prefs.get("evaluationFilesDirectory", "") + "/" + filename;
+
+		try (Writer writer = new FileWriter(path)) {
 
 			writer.append(String.valueOf("ID")).append(',').append(String.valueOf("name")).append(',')
 					.append(String.valueOf("latitude")).append(',').append(String.valueOf("longitude")).append(',')
@@ -100,7 +93,7 @@ public class ResultTracker {
 			filename += ".csv";
 		}
 
-		try (Writer writer = new FileWriter(ResultTracker.path + "/" + filename)) {
+		try (Writer writer = new FileWriter(RecoTool.prefs.get("evaluationFilesDirectory", "") +"/"+ filename)) {
 
 			writer.append(String.valueOf("ID")).append(',').append(String.valueOf("name")).append(',')
 					.append(String.valueOf("latitude")).append(',').append(String.valueOf("longitude")).append(',')
@@ -146,7 +139,7 @@ public class ResultTracker {
 	public List<File> readResultDirectory() {
 		List<File> files = new ArrayList<File>();
 
-		File folder = new File(path);
+		File folder = new File(RecoTool.prefs.get("evaluationFilesDirectory", "/"));
 
 		for (File f : folder.listFiles()) {
 			if (!f.isHidden())
@@ -165,20 +158,19 @@ public class ResultTracker {
 	public int getNumOfAccuracyEvaluationsOfUser(User user, String charSeq) {
 		int cntr = 1;
 
-		File folder = new File(path);
+		try {
+			File folder = new File(RecoTool.prefs.get("evaluationFilesDirectory", "/"));
 
-		for (File f : folder.listFiles()) {
-			if (f.getName().contains(user.getId() + "-" + charSeq))
-				cntr++;
+			for (File f : folder.listFiles()) {
+				if (f.getName().contains(user.getId() + "-" + charSeq))
+					cntr++;
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
 		return cntr;
-	}
-
-	// ================================
-
-	public String getPath() {
-		return ResultTracker.path;
 	}
 
 	/**

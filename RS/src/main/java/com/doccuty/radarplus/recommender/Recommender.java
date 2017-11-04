@@ -202,10 +202,10 @@ public class Recommender {
 
 		if (this.app.getUseGeocoordinates())
 			requiredTimeToReachDestination = this.app.getEndPosition().distance(setting.getGeoposition()) * 60
-					/ this.app.getCurrentUser().getAvgWalkingSpeed();
+					/ this.app.getCurrentUser().getMinWalkingSpeed();
 		else
 			requiredTimeToReachDestination = this.app.getEndPosition().euclideanDistance(setting.getGeoposition()) * 60
-					/ this.app.getCurrentUser().getAvgWalkingSpeed();
+					/ this.app.getCurrentUser().getMinWalkingSpeed();
 
 		// add additional buffer [1;5] in [min]
 		if (requiredTimeToReachDestination * 0.1 < 1)

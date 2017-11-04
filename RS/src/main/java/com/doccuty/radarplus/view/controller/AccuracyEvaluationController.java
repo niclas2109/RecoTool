@@ -179,7 +179,8 @@ public class AccuracyEvaluationController implements Initializable {
 		// init time
 		this.app.getSetting().withGeoposition(this.app.getStartPosition())
 				.withNextDestination(this.app.getEndPosition())
-				.withCurrentDepartureTime(new Date(this.app.getStartTime().getTimeInMillis() + this.app.getEvaluationDuration().toMillis()))
+				.withCurrentDepartureTime(new Date(
+						this.app.getStartTime().getTimeInMillis() + this.app.getEvaluationDuration().toMillis()))
 				.withEstimatedDepartureTime(this.app.getSetting().getCurrentDepartureTime());
 
 		this.lbl_timeToDepature.setText(Duration.ofMillis(this.app.getSetting().getTimeToDeparture()).toMinutes() + "");
@@ -253,14 +254,21 @@ public class AccuracyEvaluationController implements Initializable {
 
 		this.usedItems.add(item);
 
-		long diff1 = this.app.getSetting().getCurrentDepartureTime().getTime()
-				- item.getEstimatedUsageDuration().toMillis() - walkingTime;
+		Date currentTime = null;
 
-		long diff2 = this.app.getSetting().getEstimatedDepartureTime().getTime()
-				- item.getEstimatedUsageDuration().toMillis() - walkingTime;
+		if (this.app.getMaxNumOfItemsToUse() > 0 && this.usedItems.size() <= this.app.getMaxNumOfItemsToUse()) {
 
-		this.app.getSetting().withGeoposition(item.getGeoposition()).withCurrentDepartureTime(new Date(diff1))
-				.withEstimatedDepartureTime(new Date(diff2));
+			currentTime = new Date(this.app.getSetting().getCurrentDepartureTime().getTime()
+					+ (this.app.getEvaluationDuration().toMillis() / this.app.getMaxNumOfItemsToUse()));
+
+		} else if (this.app.getMaxNumOfItemsToUse() > 0 && this.usedItems.size() == this.app.getMaxNumOfItemsToUse()) {
+			currentTime = this.app.getSetting().getCurrentDepartureTime();
+		} else {
+			currentTime = new Date(this.app.getSetting().getCurrentTime().getTime()
+					+ item.getEstimatedUsageDuration().toMillis() + walkingTime);
+		}
+
+		this.app.getSetting().withGeoposition(item.getGeoposition()).setCurrentTime(currentTime);
 
 		// Update user position on map
 		if (!this.app.getRealtimeUserPositionUpdateAccuracyEvaluationMap()) {

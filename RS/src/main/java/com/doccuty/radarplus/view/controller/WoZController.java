@@ -231,7 +231,7 @@ public class WoZController implements Initializable {
 		this.app.addPropertyChangeListener(RecoTool.PROPERTY_NAVIGATION_FINISHED, listener);
 		this.app.addPropertyChangeListener(RecoTool.PROPERTY_EVALUATION_PREPARED, listener);
 		this.app.addPropertyChangeListener(RecoTool.PROPERTY_HIDE_ALL, listener);
-		
+
 		this.app.addPropertyChangeListener(RecoTool.PROPERTY_ITEM_USAGE_DONE, listener);
 
 		this.app.addPropertyChangeListener(RecoTool.PROPERTY_SWITCH_MODE, listener);
@@ -247,9 +247,9 @@ public class WoZController implements Initializable {
 		this.updateEvaluationDuration(this.app.getEvaluationDuration());
 
 		int distance = 0;
-		if (this.app.getUseGeocoordinates())
+		if (this.app.getSetting().getGeoposition() != null && this.app.getUseGeocoordinates())
 			distance = (int) (this.app.getEndPosition().distance(this.app.getSetting().getGeoposition()) * 1000);
-		else
+		else if (this.app.getSetting().getGeoposition() != null)
 			distance = (int) (this.app.getEndPosition().euclideanDistance(this.app.getSetting().getGeoposition())
 					* 1000);
 
@@ -977,7 +977,13 @@ public class WoZController implements Initializable {
 	}
 
 	public void scoresSavedToFile(String mode, String value) {
-		String prompt = this.bundle.getString("fileSaved");
+		String prompt = null;
+
+		if (SystemPrompt.SYSTEM_PROMPT_MODE_SUCCESS.compareTo(mode) == 0)
+			prompt = this.bundle.getString("fileSaved");
+		else
+			prompt = this.bundle.getString("failedToSaveFile");
+
 		prompt = prompt.replaceAll("%filename%", value);
 
 		try {

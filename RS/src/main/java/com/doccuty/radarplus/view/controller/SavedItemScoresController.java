@@ -103,7 +103,8 @@ public class SavedItemScoresController implements Initializable {
 		this.files.addAll(this.app.getResultTracker().readResultDirectory());
 
 		String txt = this.lbl_introduction.getText();
-		txt = txt.replaceAll("%path%", this.app.getResultTracker().getPath()) + "/";
+
+		txt = txt.replaceAll("%path%", RecoTool.prefs.get("evaluationFilesDirectory", "/")) + "/";
 		this.lbl_introduction.setText(txt);
 	}
 

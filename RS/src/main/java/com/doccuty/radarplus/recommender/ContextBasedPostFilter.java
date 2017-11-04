@@ -185,7 +185,13 @@ public class ContextBasedPostFilter {
 			double tRoute = distance * 3600 * 1000 / user.getAvgWalkingSpeed();
 
 			// estimated time for item usage in [ms]
-			long tUsage = item.getEstimatedUsageDuration().toMillis();
+			long tUsage = 0;
+
+			if (this.recommender.getStudyApp().getMaxNumOfItemsToUse() == 0) {
+				tUsage = item.getEstimatedUsageDuration().toMillis();
+			} else {
+				tUsage = this.recommender.getStudyApp().getOptimizedItemUsageDuration();
+			}
 
 			// add additional time due to uncertainty
 			long delay = this.recommender.getStudyApp().getSetting().getDelay();

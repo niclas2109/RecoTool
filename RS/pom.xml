@@ -119,6 +119,7 @@
 					<include>**/*.jpg</include>
 					<include>**/*.png</include>
 					<include>**/*.json</include>
+					<include>**/*.md</include>
 				</includes>
 			</resource>
 		</resources>

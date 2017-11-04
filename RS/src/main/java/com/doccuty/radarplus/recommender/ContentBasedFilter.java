@@ -111,7 +111,6 @@ public class ContentBasedFilter {
 				Entry<Attribute, Double> e2 = it2.next();
 
 				double w = (weight.containsKey(e2.getKey().getId())) ? weight.get(e2.getKey().getId()) : 1;
-				LOG.debug("weight for " + e2.getKey().getAttribute() + ": " + w);
 
 				score += e2.getValue() * e.getValue().get(e2.getKey());
 
@@ -254,7 +253,7 @@ public class ContentBasedFilter {
 		for (Iterator<Entry<Long, Integer>> it = df.entrySet().iterator(); it.hasNext();) {
 			Entry<Long, Integer> e = it.next();
 
-			double idf = Math.log10(totalNumOfItems / (1 + e.getValue()));
+			double idf = (e.getValue() == 0) ? Math.log10(totalNumOfItems / (e.getValue())) : 1;
 
 			idfVector.put(e.getKey(), idf);
 		}

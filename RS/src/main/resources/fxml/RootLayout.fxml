@@ -94,9 +94,9 @@
    <center>
       <VBox alignment="CENTER" BorderPane.alignment="CENTER">
          <children>
-            <ImageView fx:id="iv_loading" fitHeight="80.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true">
+            <ImageView fx:id="iv_loading" fitHeight="80.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
                <image>
-                  <Image url="@../images/loading.png" />
+                  <Image url="@../images/LogoRadAR.png" />
                </image>
                <VBox.margin>
                   <Insets bottom="10.0" />

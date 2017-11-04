@@ -18,6 +18,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -38,7 +39,6 @@ import com.doccuty.radarplus.recommender.WalkingSpeedCalculator;
 import com.doccuty.radarplus.trainer.Trainer;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class RecoTool {
@@ -82,7 +82,7 @@ public class RecoTool {
 
 	Item navigationDestination;
 
-	String nextConnectionPosition;
+	String nextConnectionPositionIdentifier;
 
 	private TrafficJunction startTrafficJunction;
 	private TrafficJunction endTrafficJunction;
@@ -101,6 +101,8 @@ public class RecoTool {
 	private ResultTracker resultTracker;
 
 	List<SystemPrompt> prompts;
+
+	public static Preferences prefs;
 
 	public RecoTool() {
 
@@ -126,105 +128,71 @@ public class RecoTool {
 		this.hideAll = true;
 
 		this.resultTracker = new ResultTracker();
+
+		RecoTool.prefs = Preferences.userNodeForPackage(getClass());
 	}
 
 	public void init() {
-		
 
 		ObjectMapper mapper = new ObjectMapper();
 		InputStream from = null;
-		
+
 		try {
-			// Set setting parameters
-			from = this.getClass().getResourceAsStream(MainApp.APP_SETTINGS_JSON_FILE);
 
-			if(from == null)
-				throw new FileNotFoundException("File "+MainApp.APP_SETTINGS_JSON_FILE+" not found!");
+			// Simulation settings
+			this.startTime.setTime(new Date(RecoTool.prefs.getLong("startTime", 0)));
 
-			JsonNode json = mapper.readTree(from);
+			this.evaluationDuration = Duration.ofMinutes(RecoTool.prefs.getLong("evaluationDuration", 30));
+			this.recommender.getContextBasedPostFilter().setTimeMaximizer(RecoTool.prefs.getDouble("timeMaximizer", 1));
 
-			long version = json.get("version").asLong();
-			boolean randomize = json.get("randomizeItemGeoposition").asBoolean();
-			boolean useGeocoordinates = json.get("useGeocoordinates").asBoolean();
+			this.startTrafficJunction = mapper.treeToValue(
+					mapper.readTree(RecoTool.prefs.get("startTrafficJunction", "{}")), TrafficJunction.class);
+			this.endTrafficJunction = mapper.treeToValue(
+					mapper.readTree(RecoTool.prefs.get("endTrafficJunction", "{}")), TrafficJunction.class);
 
-			int maxNumOfItems = json.get("maxNumOfItems").asInt();
-			int maxNumOfProductivityItems = json.get("maxNumOfProductivityItems").asInt();
+			this.nextConnectionPositionIdentifier = RecoTool.prefs.get("nextConnectionPositionIdentifier", "Gleis 2");
 
-			int maxNumOfItemsToUse = 0;
-			
-			if (json.has("maxNumOfItemsToUse"))
-				maxNumOfItemsToUse = json.get("maxNumOfItemsToUse").asInt();
+			this.startPosition = mapper.treeToValue(mapper.readTree(RecoTool.prefs.get("startPosition", "{}")),
+					Geoposition.class);
+			this.endPosition = mapper.treeToValue(mapper.readTree(RecoTool.prefs.get("endPosition", "{}")),
+					Geoposition.class);
 
-			if (json.has("startTime")) {
-				startTime.setTimeInMillis(json.get("startTime").asLong());
-			}
+			RecoTool.setting.setGeoposition(this.startPosition);
 
-			int evaluationDuration = json.get("evaluationDuration").asInt();
+			// Item settings
+			this.withMaxNumOfItems(RecoTool.prefs.getInt("maxNumOfItems", 1))
+					.withMaxNumOfProductivityItems(RecoTool.prefs.getInt("maxNumOfItems", 0))
+					.withUseGeocoordinates(RecoTool.prefs.getBoolean("useGeocoordinates", false))
+					.withRandomizeItemGeoposition(RecoTool.prefs.getBoolean("randomizeItemGeoposition", true));
 
-			if (json.has("nextConnectionPosition"))
-				this.nextConnectionPosition = json.get("nextConnectionPosition").asText();
+			this.recommender.withSerendipityEnabled(RecoTool.prefs.getBoolean("serendipityEnabled", false))
+					.withWeightingEnabled(RecoTool.prefs.getBoolean("weightingEnabled", true));
 
-			if (json.has("startTrafficJunction"))
-				this.startTrafficJunction = mapper.treeToValue(json.get("startTrafficJunction"), TrafficJunction.class);
+			// Network settings
+			this.server.withBrokerURI(RecoTool.prefs.get("brokerIP", "tcp://localhost"))
+					.withBrokerPort(RecoTool.prefs.getInt("brokerPort", 1883));
 
-			if (json.has("endTrafficJunction"))
-				this.endTrafficJunction = mapper.treeToValue(json.get("endTrafficJunction"), TrafficJunction.class);
+			// Other setting
+			this.withRealtimeUserPositionUpdateAccuracyEvaluationMap(
+					RecoTool.prefs.getBoolean("realtimeUserPositionUpdateAccuracyEvaluationMap", false));
 
-			
-			this.startPosition.withLatitude(json.get("startPosition").get("latitude").asDouble())
-					.withLongitude(json.get("startPosition").get("longitude").asDouble());
-			
-			this.endPosition.withLatitude(json.get("endPosition").get("latitude").asDouble())
-					.withLongitude(json.get("endPosition").get("longitude").asDouble());
+			this.walkingTrainingPosition = mapper.treeToValue(
+					mapper.readTree(RecoTool.prefs.get("walkingTrainingPosition", "{}")), Geoposition.class);
 
-			this.walkingTrainingPosition.withLatitude(json.get("walkingTrainingPosition").get("latitude").asDouble())
-					.withLongitude(json.get("walkingTrainingPosition").get("longitude").asDouble());
-
-			
-			RecoTool.setting.withGeoposition(this.startPosition).setNextDeparture(this.endPosition);
-
-			this.withVersion(version).withRandomizeItemGeoposition(randomize).withMaxNumOfItems(maxNumOfItems)
-					.withMaxNumOfProductivityItems(maxNumOfProductivityItems)
-					.withEvaluationDuration(Duration.ofMinutes(evaluationDuration))
-					.withUseGeocoordinates(useGeocoordinates).withStartTime(startTime)
-					.withMaxNumOfItems(maxNumOfItemsToUse);
-
-			double timeMaximizer = json.get("timeMaximizer").asDouble();
-			this.recommender.getContextBasedPostFilter().setTimeMaximizer(timeMaximizer);
-
-			if (json.has("realtimeUserPositionUpdateAccuracyEvaluationMap")) {
-				this.realtimeUserPositionUpdateAccuracyEvaluationMap = json
-						.get("realtimeUserPositionUpdateAccuracyEvaluationMap").asBoolean();
-			} else {
-				this.realtimeUserPositionUpdateAccuracyEvaluationMap = false;
-			}
-
-			if (json.has("serendipityEnabled"))
-				this.recommender.setSerendipityEnabled(json.get("serendipityEnabled").asBoolean());
-
-			if (json.has("weightingEnabled"))
-				this.recommender.setWeightingEnabled(json.get("weightingEnabled").asBoolean());
-
-			String brokerIP = json.get("brokerIP").asText();
-			String brokerPort = json.get("brokerPort").asText();
-
-			this.server.withBrokerURI(brokerIP).withBrokerPort(brokerPort);
+			this.withMaxNumOfItemsToUse(RecoTool.prefs.getInt("maxNumOfItemsToUse", 1));
 
 		} catch (NullPointerException | IOException e) {
 			e.printStackTrace();
 		}
 
-		
 		try {
 			// Load system prompt
 			this.prompts = new ArrayList<SystemPrompt>();
-			
-			from = this.getClass().getResourceAsStream(MainApp.SYSTEM_PROMPTS_JSON_FILE);
-			
 
-			if(from == null)
-				throw new FileNotFoundException("File "+MainApp.SYSTEM_PROMPTS_JSON_FILE+" not found!");
-			
+			from = this.getClass().getResourceAsStream(MainApp.SYSTEM_PROMPTS_JSON_FILE);
+
+			if (from == null)
+				throw new FileNotFoundException("File " + MainApp.SYSTEM_PROMPTS_JSON_FILE + " not found!");
 
 			for (SystemPrompt sP : mapper.readValue(from, SystemPrompt[].class))
 				this.prompts.add(sP);
@@ -232,8 +200,7 @@ public class RecoTool {
 		} catch (NullPointerException | IOException e) {
 			e.printStackTrace();
 		}
-		
-		
+
 		List<Item> t = this.retreiveItemsFromDB().stream().filter(i -> i.getIsTrainingItem())
 				.collect(Collectors.toList());
 
@@ -299,7 +266,7 @@ public class RecoTool {
 			Random rand = new Random();
 			int oldLength = arr.length();
 			List<Integer> s = new ArrayList<Integer>();
-			while (arr.length() <= oldLength + this.maxNumOfProductivityItems && s.size() <= productivityItems.size()) {
+			while (arr.length() <= oldLength + this.maxNumOfProductivityItems && s.size() < productivityItems.size()) {
 
 				int idx = rand.nextInt(productivityItems.size());
 
@@ -353,7 +320,7 @@ public class RecoTool {
 		// Assign traffic junction to random items
 		Set<Integer> usedRandomNumbers = new HashSet<Integer>();
 
-		while (usedRandomNumbers.size() < this.maxNumOfItems) {
+		while (usedRandomNumbers.size() < this.maxNumOfItems && usedRandomNumbers.size() < list.size()) {
 			try {
 				int idx = rand.nextInt(list.size());
 
@@ -714,7 +681,7 @@ public class RecoTool {
 	}
 
 	public void startNavigationToLastDestination() {
-		Item item = new Item().withName(this.getNextConnectionPosition()).withGeoposition(this.endPosition);
+		Item item = new Item().withName(this.getNextConnectionPositionIdentifier()).withGeoposition(this.endPosition);
 
 		AttributeDAO ad = new AttributeDAO();
 		Attribute attribute = ad.findById(74);
@@ -885,7 +852,7 @@ public class RecoTool {
 
 	// ===================================================
 
-	public static final String PROPERTY_ITEM_USAGE_DONE = "itemusageDone";
+	public static final String PROPERTY_ITEM_USAGE_DONE = "itemUsageDone";
 
 	public void itemUsed() {
 
@@ -905,9 +872,8 @@ public class RecoTool {
 
 		Date timeOfUsage = null;
 
-		if (maxNumOfItemsToUse > 0) {
-			timeOfUsage = new Date(RecoTool.setting.getCurrentTime().getTime()
-					+ this.getEvaluationDuration().toMinutes() / (this.maxNumOfItems + 5));
+		if (maxNumOfItemsToUse > 0 && setting.getUsedItem().size() <= maxNumOfItemsToUse) {
+			timeOfUsage = new Date(RecoTool.setting.getCurrentTime().getTime() + this.getOptimizedItemUsageDuration());
 		} else {
 			timeOfUsage = new Date(
 					RecoTool.setting.getCurrentTime().getTime() + usedItem.getEstimatedUsageDuration().toMillis());
@@ -988,7 +954,8 @@ public class RecoTool {
 
 			if (Recommender.PROPERTY_EFFICIENCY_MODE.equals(value)) {
 				// Temporary item with Geocoordinates
-				Item tmpItem = new Item().withName(this.getNextConnectionPosition()).withGeoposition(this.endPosition);
+				Item tmpItem = new Item().withName(this.getNextConnectionPositionIdentifier())
+						.withGeoposition(this.endPosition);
 				this.setNavigationDestination(tmpItem);
 
 				json.put("item", new JSONObject(mapper.writeValueAsString(tmpItem)));
@@ -1078,8 +1045,8 @@ public class RecoTool {
 			msg = msg.replace("%navigationDestination%", this.getNavigationDestination().getName());
 		}
 
-		if (this.getNextConnectionPosition() != null) {
-			msg = msg.replace("%nextConnectionPosition%", this.getNextConnectionPosition());
+		if (this.getNextConnectionPositionIdentifier() != null) {
+			msg = msg.replace("%nextConnectionPosition%", this.getNextConnectionPositionIdentifier());
 		}
 
 		msg = msg.replace("%mode%", this.getRecommender().getMode());
@@ -1289,6 +1256,30 @@ public class RecoTool {
 
 	// ===================================================
 
+	public long getOptimizedItemUsageDuration() {
+		long tUsage = 0;
+
+		if (RecoTool.setting.getUsedItem().size() < this.maxNumOfItemsToUse) {
+			tUsage = setting.getTimeToDeparture() / (this.maxNumOfItemsToUse);
+			tUsage -= 200;
+		} else {
+			tUsage = setting.getTimeToDeparture();
+
+			double distance = 0;
+
+			if (this.useGeocoordinates)
+				distance = setting.getGeoposition().distance(this.endPosition);
+			else
+				distance = setting.getGeoposition().euclideanDistance(this.endPosition);
+
+			tUsage -= 1.1 * (distance / this.user.getMinWalkingSpeed() * 3600 * 1000);
+		}
+
+		return tUsage;
+	}
+
+	// ===================================================
+
 	public boolean getUseGeocoordinates() {
 		return this.useGeocoordinates;
 	}
@@ -1364,12 +1355,12 @@ public class RecoTool {
 
 	// =========================================
 
-	public String getNextConnectionPosition() {
-		return this.nextConnectionPosition;
+	public String getNextConnectionPositionIdentifier() {
+		return this.nextConnectionPositionIdentifier;
 	}
 
 	public void setNextConnectionPosition(String value) {
-		this.nextConnectionPosition = value;
+		this.nextConnectionPositionIdentifier = value;
 	}
 
 	public RecoTool withNextConnectionPosition(String value) {

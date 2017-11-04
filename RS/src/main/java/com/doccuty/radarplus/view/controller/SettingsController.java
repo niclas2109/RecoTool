@@ -1,31 +1,24 @@
 package com.doccuty.radarplus.view.controller;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Calendar;
 import java.util.List;
 import java.util.ResourceBundle;
-
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.jboss.logging.Logger;
 
 import com.doccuty.radarplus.model.SystemPrompt;
 import com.doccuty.radarplus.model.TrafficJunction;
-import com.doccuty.radarplus.MainApp;
 import com.doccuty.radarplus.model.RecoTool;
 import com.doccuty.radarplus.network.RecoToolMqttServer;
 import com.doccuty.radarplus.persistence.TrafficJunctionDAO;
 import com.doccuty.radarplus.view.listener.SettingsListener;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -39,6 +32,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
@@ -133,6 +128,9 @@ public class SettingsController implements Initializable {
 	@FXML
 	TextField tf_numberOfItemsToUse;
 
+	@FXML
+	Label lbl_evaluationFilesDirectory;
+
 	ObservableList<TrafficJunction> trafficJunctions;
 
 	private Stage stage;
@@ -141,6 +139,7 @@ public class SettingsController implements Initializable {
 	private RecoTool app;
 
 	public SettingsController() {
+
 		listener = new SettingsListener(this);
 		trafficJunctions = FXCollections.observableArrayList();
 
@@ -189,98 +188,55 @@ public class SettingsController implements Initializable {
 
 	public void init() {
 
-		ObjectMapper mapper = new ObjectMapper();
-
 		try {
-			InputStream from = this.getClass().getResourceAsStream(MainApp.APP_SETTINGS_JSON_FILE);
-
-			if (from == null)
-				throw new FileNotFoundException("File " + MainApp.APP_SETTINGS_JSON_FILE + " not found!");
-
-			JsonNode json = mapper.readTree(from);
-
 			// Set evaluation settings
-			Calendar startTime = Calendar.getInstance();
-			if (json.has("startTime")) {
-				startTime.setTimeInMillis(json.get("startTime").asLong());
-			}
-
-			this.cb_startHour.getSelectionModel().select(startTime.get(Calendar.HOUR_OF_DAY));
-			this.cb_startMinute.getSelectionModel().select(startTime.get(Calendar.MINUTE));
-
-			int evaluationDuration = json.get("evaluationDuration").asInt();
+			this.cb_startHour.getSelectionModel().select(this.app.getStartTime().get(Calendar.HOUR_OF_DAY));
+			this.cb_startMinute.getSelectionModel().select(this.app.getStartTime().get(Calendar.MINUTE));
 
 			try {
-				this.cb_evaluationDuration.getSelectionModel().select(evaluationDuration / 5 - 1);
+				this.cb_evaluationDuration.getSelectionModel()
+						.select((int) (this.app.getEvaluationDuration().toMinutes() / 5 - 1));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 
-			double timeMaximizer = json.get("timeMaximizer").asDouble();
-			this.tf_timeMaximizer.setText("" + Math.round(timeMaximizer / 60000));
+			this.tf_timeMaximizer.setText(
+					"" + Math.round(this.app.getRecommender().getContextBasedPostFilter().getTimeMaximizer() / 60000));
 
 			// Set start and end station
-			TrafficJunction trafficJunction = null;
+			this.cb_startStation.getSelectionModel()
+					.select(this.getIndexOfTraffixJunction(this.app.getStartTrafficJunction()));
+			this.cb_endStation.getSelectionModel()
+					.select(this.getIndexOfTraffixJunction(this.app.getEndTrafficJunction()));
 
-			if (json.has("startTrafficJunction")) {
-				try {
-					trafficJunction = mapper.treeToValue(json.get("startTrafficJunction"), TrafficJunction.class);
-				} catch (JsonProcessingException e) {
-					e.printStackTrace();
-				}
-			}
-			this.cb_startStation.getSelectionModel().select(this.getIndexOfTraffixJunction(trafficJunction));
+			this.tf_startPositionLat.setText(this.app.getStartPosition().getLatitude() + "");
+			this.tf_startPositionLng.setText(this.app.getStartPosition().getLongitude() + "");
 
-			if (json.has("endTrafficJunction")) {
-				try {
-					trafficJunction = mapper.treeToValue(json.get("endTrafficJunction"), TrafficJunction.class);
-				} catch (JsonProcessingException e) {
-					e.printStackTrace();
-				}
-			}
-			this.cb_endStation.getSelectionModel().select(this.getIndexOfTraffixJunction(trafficJunction));
+			this.tf_endPositionLat.setText(this.app.getEndPosition().getLatitude() + "");
+			this.tf_endPositionLng.setText(this.app.getEndPosition().getLongitude() + "");
 
-			this.tf_startPositionLat.setText(json.get("startPosition").get("latitude").asText());
-			this.tf_startPositionLng.setText(json.get("startPosition").get("longitude").asText());
-
-			this.tf_endPositionLat.setText(json.get("endPosition").get("latitude").asText());
-			this.tf_endPositionLng.setText(json.get("endPosition").get("longitude").asText());
-
-			this.tf_nextConnectionPosition.setText(json.get("nextConnectionPosition").asText());
+			this.tf_nextConnectionPosition.setText(this.app.getNextConnectionPositionIdentifier());
 
 			// Set item settings
-			this.tf_maxNumOfItems.setText(json.get("maxNumOfItems").asText());
-			this.tf_maxNumOfProductivityItems.setText(json.get("maxNumOfProductivityItems").asText());
+			this.tf_maxNumOfItems.setText(this.app.getMaxNumOfItems() + "");
+			this.tf_maxNumOfProductivityItems.setText(this.app.getMaxNumOfProductivityItems() + "");
 
-			this.cb_randomizeGeoposition.setSelected(json.get("randomizeItemGeoposition").asBoolean());
-			this.cb_useGeocoordinates.setSelected(json.get("useGeocoordinates").asBoolean());
+			this.cb_randomizeGeoposition.setSelected(this.app.getRandomizeItemGeoposition());
+			this.cb_useGeocoordinates.setSelected(this.app.getUseGeocoordinates());
 
-			if (json.has("serendipityEnabled"))
-				this.cb_serendipityEnabled.setSelected(json.get("serendipityEnabled").asBoolean());
+			this.cb_serendipityEnabled.setSelected(this.app.getRecommender().getSerendipityEnabled());
 
-			if (json.has("weightingEnabled"))
-				this.cb_weightingEnabled.setSelected(json.get("weightingEnabled").asBoolean());
+			this.cb_weightingEnabled.setSelected(this.app.getRecommender().getWeightingEnabled());
 
-			if (json.has("realtimeUserPositionUpdateAccuracyEvaluationMap"))
-				this.cb_realtimeUpdateAccuracyEvaluationMap
-						.setSelected(json.get("realtimeUserPositionUpdateAccuracyEvaluationMap").asBoolean());
+			this.cb_realtimeUpdateAccuracyEvaluationMap
+					.setSelected(this.app.getRealtimeUserPositionUpdateAccuracyEvaluationMap());
 
-			if (json.has("walkingTrainingPosition")) {
-				this.tf_walkingSpeedTrainingPositionLat
-						.setText(json.get("walkingTrainingPosition").get("latitude").asText());
-				this.tf_walkingSpeedTrainingPositionLng
-						.setText(json.get("walkingTrainingPosition").get("longitude").asText());
-			}
+			this.tf_walkingSpeedTrainingPositionLat.setText(this.app.getWalkingTrainingPosition().getLatitude() + "");
+			this.tf_walkingSpeedTrainingPositionLng.setText(this.app.getWalkingTrainingPosition().getLongitude() + "");
 
-			if (json.has("useAverageUsageDuration")) {
-				cb_useAverageUsageDuration.setSelected(json.get("useAverageUsageDuration").asBoolean());
-			}
+			this.cb_useAverageUsageDuration.setSelected(this.app.getMaxNumOfItemsToUse() == 0);
 
-			if (json.has("maxNumOfItemsToUse")) {
-				tf_numberOfItemsToUse.setText(json.get("maxNumOfItemsToUse").asText());
-			} else {
-				tf_numberOfItemsToUse.setText("0");
-			}
+			tf_numberOfItemsToUse.setText(this.app.getMaxNumOfItemsToUse() + "");
 
 			this.updateCheckBoxUsageAvUsageDuration(null);
 
@@ -294,13 +250,12 @@ public class SettingsController implements Initializable {
 				this.updateNetworkConnection();
 			}
 
-			String brokerIP = json.get("brokerIP").asText();
-			String brokerPort = json.get("brokerPort").asText();
-
-			if (brokerIP != null) {
-				this.tf_brokerIP.setText(brokerIP);
-				this.tf_brokerPort.setText(brokerPort);
+			if (this.app.getMQTTClient() != null) {
+				this.tf_brokerIP.setText(this.app.getMQTTClient().getBrokerURI());
+				this.tf_brokerPort.setText(this.app.getMQTTClient().getBrokerPort() + "");
 			}
+
+			this.lbl_evaluationFilesDirectory.setText(RecoTool.prefs.get("evaluationFilesDirectory", "/"));
 
 			// Set listener
 			this.app.getMQTTClient().addPropertyChangeListener(RecoToolMqttServer.PROPERTY_TOPIC_UPDATE, listener);
@@ -369,7 +324,7 @@ public class SettingsController implements Initializable {
 				.withWeightingEnabled(this.cb_weightingEnabled.isSelected());
 
 		try {
-			this.writeJsonSettings();
+			this.updateSettings();
 
 			this.stage.hide();
 
@@ -386,17 +341,19 @@ public class SettingsController implements Initializable {
 
 			// reconnect to mqtt broker, if connection data was changed
 			if (!this.tf_brokerIP.getText().equals(this.app.getMQTTClient().getBrokerURI())
-					|| !this.tf_brokerPort.getText().equals(this.app.getMQTTClient().getBrokerPort())) {
+					|| Integer.parseInt(this.tf_brokerPort.getText()) != this.app.getMQTTClient().getBrokerPort()) {
 
 				if (this.app.getMQTTClient().isConnected())
 					this.app.getMQTTClient().getClient().disconnect();
 
 				this.app.getMQTTClient().withBrokerURI(this.tf_brokerIP.getText())
-						.withBrokerPort(this.tf_brokerPort.getText());
-				this.app.getMQTTClient().connect();
+						.withBrokerPort((this.tf_brokerPort.getText().length() > 0)
+								? Integer.parseInt(this.tf_brokerPort.getText())
+								: 0)
+						.connect();
 			}
 
-			this.writeJsonSettings();
+			this.updateSettings();
 
 			this.stage.hide();
 
@@ -408,51 +365,49 @@ public class SettingsController implements Initializable {
 
 	}
 
-	private void writeJsonSettings() throws JsonProcessingException, IOException {
+	private void updateSettings() throws JsonProcessingException, IOException {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
 
-		File f = new File(getClass().getClassLoader().getResource("settings/appSettings.json").getPath());
+		// Simulation settings
+		RecoTool.prefs.putLong("startTime", this.app.getStartTime().getTimeInMillis());
 
-		JsonNode json = mapper.createObjectNode();
-		((ObjectNode) json).put("version", this.app.getVersion());
-		((ObjectNode) json).put("randomizeItemGeoposition", this.app.getRandomizeItemGeoposition());
-		((ObjectNode) json).put("useGeocoordinates", this.app.getUseGeocoordinates());
-		((ObjectNode) json).put("serendipityEnabled", this.app.getRecommender().getSerendipityEnabled());
-		((ObjectNode) json).put("weightingEnabled", this.app.getRecommender().getWeightingEnabled());
-		((ObjectNode) json).put("maxNumOfItems", this.app.getMaxNumOfItems());
-		((ObjectNode) json).put("maxNumOfProductivityItems", this.app.getMaxNumOfProductivityItems());
-		((ObjectNode) json).put("evaluationDuration", this.app.getEvaluationDuration().toMinutes());
-		((ObjectNode) json).put("timeMaximizer",
+		RecoTool.prefs.putLong("evaluationDuration", this.app.getEvaluationDuration().toMinutes());
+
+		RecoTool.prefs.putDouble("timeMaximizer",
 				this.app.getRecommender().getContextBasedPostFilter().getTimeMaximizer());
-		((ObjectNode) json).set("startTrafficJunction",
-				mapper.readTree(mapper.writeValueAsString(this.app.getStartTrafficJunction())));
-		((ObjectNode) json).set("endTrafficJunction",
-				mapper.readTree(mapper.writeValueAsString(this.app.getEndTrafficJunction())));
-		((ObjectNode) json).put("startTime", this.app.getStartTime().getTimeInMillis());
 
-		((ObjectNode) json).set("startPosition",
-				mapper.readTree(mapper.writeValueAsString(this.app.getStartPosition())));
+		RecoTool.prefs.put("startTrafficJunction", mapper.writeValueAsString(this.app.getStartTrafficJunction()));
+		RecoTool.prefs.put("endTrafficJunction", mapper.writeValueAsString(this.app.getEndTrafficJunction()));
 
-		((ObjectNode) json).set("endPosition", mapper.readTree(mapper.writeValueAsString(this.app.getEndPosition())));
+		RecoTool.prefs.put("nextConnectionPositionIdentifier", this.tf_nextConnectionPosition.getText());
 
-		((ObjectNode) json).set("nextConnectionPosition",
-				mapper.readTree(mapper.writeValueAsString(this.app.getNextConnectionPosition())));
+		RecoTool.prefs.put("startPosition", mapper.writeValueAsString(this.app.getStartPosition()));
+		RecoTool.prefs.put("endPosition", mapper.writeValueAsString(this.app.getEndPosition()));
 
-		((ObjectNode) json).put("realtimeUserPositionUpdateAccuracyEvaluationMap",
+		// Item settings
+		RecoTool.prefs.putInt("maxNumOfItems", this.app.getMaxNumOfItems());
+		RecoTool.prefs.putInt("maxNumOfProductivityItems", this.app.getMaxNumOfProductivityItems());
+
+		RecoTool.prefs.putBoolean("useGeocoordinates", this.app.getUseGeocoordinates());
+
+		RecoTool.prefs.putBoolean("randomizeItemGeoposition", this.app.getRandomizeItemGeoposition());
+		RecoTool.prefs.putBoolean("serendipityEnabled", this.app.getRecommender().getSerendipityEnabled());
+		RecoTool.prefs.putBoolean("weightingEnabled", this.app.getRecommender().getWeightingEnabled());
+
+		// Network settings
+		RecoTool.prefs.put("brokerIP", this.app.getMQTTClient().getBrokerURI());
+		RecoTool.prefs.putInt("brokerPort", this.app.getMQTTClient().getBrokerPort());
+
+		// Other setting
+		RecoTool.prefs.putBoolean("realtimeUserPositionUpdateAccuracyEvaluationMap",
 				this.app.getRealtimeUserPositionUpdateAccuracyEvaluationMap());
 
-		((ObjectNode) json).set("walkingTrainingPosition",
-				mapper.readTree(mapper.writeValueAsString(this.app.getWalkingTrainingPosition())));
+		RecoTool.prefs.put("walkingTrainingPosition", mapper.writeValueAsString(this.app.getWalkingTrainingPosition()));
 
-		((ObjectNode) json).set("maxNumOfItemsToUse",
-				mapper.readTree(mapper.writeValueAsString(this.app.getMaxNumOfItemsToUse())));
+		RecoTool.prefs.putInt("maxNumOfItemsToUse", this.app.getMaxNumOfItemsToUse());
 
-		((ObjectNode) json).put("networkEnabled", this.cb_networkActivated.isSelected());
-		((ObjectNode) json).put("brokerIP", this.tf_brokerIP.getText());
-		((ObjectNode) json).put("brokerPort", this.tf_brokerPort.getText());
-
-		mapper.writeValue(f, json);
+		RecoTool.prefs.put("evaluationFilesDirectory", this.lbl_evaluationFilesDirectory.getText());
 	}
 
 	@FXML
@@ -471,6 +426,23 @@ public class SettingsController implements Initializable {
 		} else {
 			this.tf_numberOfItemsToUse.setDisable(false);
 		}
+	}
+
+	@FXML
+	public void chooseDirectory(MouseEvent ev) {
+
+		Stage stage = new Stage();
+		stage.initModality(Modality.APPLICATION_MODAL);
+
+		DirectoryChooser directoryChooser = new DirectoryChooser();
+		File selectedDirectory = directoryChooser.showDialog(stage);
+
+		if (selectedDirectory == null) {
+			lbl_evaluationFilesDirectory.setText("No Directory selected");
+		} else {
+			lbl_evaluationFilesDirectory.setText(selectedDirectory.getAbsolutePath());
+		}
+
 	}
 
 	@FXML

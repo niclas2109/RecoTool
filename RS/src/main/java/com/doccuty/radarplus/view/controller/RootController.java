@@ -15,9 +15,6 @@ import com.doccuty.radarplus.recommender.Recommender;
 import com.doccuty.radarplus.view.listener.RootListener;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
-import javafx.animation.Animation;
-import javafx.animation.Interpolator;
-import javafx.animation.RotateTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -33,7 +30,6 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.image.ImageView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 
 public class RootController implements Initializable {
 
@@ -83,10 +79,10 @@ public class RootController implements Initializable {
 
 	private Stage stage;
 	private Stage secondStage;
+	
+	private ResourceBundle bundle;
 
 	RootListener listener;
-
-	RotateTransition rt;
 
 	public RootController() {
 		this.listener = new RootListener(this);
@@ -96,19 +92,13 @@ public class RootController implements Initializable {
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
-		rt = new RotateTransition(Duration.millis(3000), iv_loading);
-		rt.setByAngle(360);
-		rt.setCycleCount(Animation.INDEFINITE);
-		rt.setInterpolator(Interpolator.LINEAR);
-		rt.play();
+		this.bundle = resources;
 	}
 
 	public void init() {
 
 		if (this.app == null)
 			return;
-
-		rt.stop();
 
 		this.mi_save.setDisable(true);
 		this.mi_trainWalkingSpeed.setDisable(true);
@@ -381,11 +371,14 @@ public class RootController implements Initializable {
 
 		// Evaluation running
 		if (this.app.getEvaluationRunning()) {
+
+			String title = bundle.getString("evaluationRunning");
+			String msg = bundle.getString("saveUserMessage");
+			
 			Alert alert = new Alert(AlertType.CONFIRMATION);
-			alert.setTitle("Evaluation laufend");
+			alert.setTitle(title);
 			alert.setHeaderText(null);
-			alert.setContentText(
-					"Soll der Benutzer gespeichert werden?\nAlle wahrgenommenen Items während des Versuchs werden als Rating im Benutzerprofil gespeichert und aus dem aktuellen Setting entfernt.");
+			alert.setContentText(msg);
 
 			Optional<ButtonType> option = alert.showAndWait();
 
@@ -538,6 +531,11 @@ public class RootController implements Initializable {
 			this.noUserAlert();
 			return null;
 		}
+		
+		if (this.app.getStartTrafficJunction() == null || this.app.getEndTrafficJunction() == null) {
+			this.noTrafficJunctionAlert();
+			return null;
+		}
 
 		if (this.app.getEvaluationRunning() && !this.stopEvaluation()) {
 			return null;
@@ -567,11 +565,28 @@ public class RootController implements Initializable {
 	}
 
 	private void noUserAlert() {
+		
+
+		String title = bundle.getString("noUser");
+		String message = bundle.getString("noUserMessage");
+		
 		Alert alert = new Alert(AlertType.ERROR);
-		alert.setTitle("Fehler beim Öffnen der Ansicht");
+		alert.setTitle(title);
 		alert.setHeaderText(null);
-		alert.setContentText(
-				"Um diese Ansicht zu öffnen muss ein gespeicherter Benutzer selektiert worden sein. Dazu kann ein neuer Benutzer registriert werden.");
+		alert.setContentText(message);
+
+		alert.showAndWait();
+	}
+	
+	private void noTrafficJunctionAlert() {
+
+		String title = bundle.getString("noTrafficJunction");
+		String message = bundle.getString("noTrafficJunctionMessage");
+		
+		Alert alert = new Alert(AlertType.ERROR);
+		alert.setTitle(title);
+		alert.setHeaderText(null);
+		alert.setContentText(message);
 
 		alert.showAndWait();
 	}
@@ -585,11 +600,14 @@ public class RootController implements Initializable {
 	}
 
 	public boolean stopEvaluation() {
+
+		String title = bundle.getString("evaluationRunning");
+		String message = bundle.getString("evaluationCancelMessage");
+		
 		Alert alert = new Alert(AlertType.CONFIRMATION);
-		alert.setTitle("Evaluation laufend");
+		alert.setTitle(title);
 		alert.setHeaderText(null);
-		alert.setContentText(
-				"Es wird aktuell eine Evaluation durchgeführt.\nSoll diese abgebrochen und das aktuelle Setting verworfen werden?");
+		alert.setContentText(message);
 
 		ButtonType cancelButton = new ButtonType("Setting beibehalten", ButtonData.NO);
 

@@ -53,7 +53,7 @@ public class RecoToolMqttServer implements Runnable {
 
 	private String brokerURI;
 
-	private String brokerPort;
+	private int brokerPort;
 
 	private MqttClient client = null;
 	private LinkedBlockingQueue<String> messageQueue;
@@ -81,7 +81,7 @@ public class RecoToolMqttServer implements Runnable {
 
 	public boolean connect() throws MqttException {
 
-		if (this.brokerURI == null || this.brokerPort == null || this.brokerURI.equals("")) {
+		if (this.brokerURI == null || this.brokerPort == 0 || this.brokerURI.equals("")) {
 			LOG.error("No IP or port given!");
 			return false;
 		}
@@ -252,15 +252,15 @@ public class RecoToolMqttServer implements Runnable {
 
 	// =============================================
 
-	public String getBrokerPort() {
+	public int getBrokerPort() {
 		return this.brokerPort;
 	}
 
-	public void setBrokerPort(String value) {
+	public void setBrokerPort(int value) {
 		this.brokerPort = value;
 	}
 
-	public RecoToolMqttServer withBrokerPort(String value) {
+	public RecoToolMqttServer withBrokerPort(int value) {
 		this.setBrokerPort(value);
 		return this;
 	}
