@@ -27,6 +27,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
@@ -249,21 +250,18 @@ public class AccuracyEvaluationController implements Initializable {
 
 		Item item = this.tv_items.getSelectionModel().getSelectedItem().getKey();
 
-		long walkingTime = ((long) item.getGeoposition().euclideanDistance(this.app.getSetting().getGeoposition()))
-				/ this.app.getCurrentUser().getAvgWalkingSpeed() * 3600;
-
 		this.usedItems.add(item);
 
 		Date currentTime = null;
 
 		if (this.app.getMaxNumOfItemsToUse() > 0 && this.usedItems.size() <= this.app.getMaxNumOfItemsToUse()) {
-
-			currentTime = new Date(this.app.getSetting().getCurrentDepartureTime().getTime()
-					+ (this.app.getEvaluationDuration().toMillis() / this.app.getMaxNumOfItemsToUse()));
-
-		} else if (this.app.getMaxNumOfItemsToUse() > 0 && this.usedItems.size() == this.app.getMaxNumOfItemsToUse()) {
-			currentTime = this.app.getSetting().getCurrentDepartureTime();
+			currentTime = new Date(
+					this.app.getSetting().getCurrentTime().getTime() + this.getOptimizedItemUsageDuration());
 		} else {
+
+			long walkingTime = ((long) item.getGeoposition().euclideanDistance(this.app.getSetting().getGeoposition()))
+					/ this.app.getCurrentUser().getMinWalkingSpeed() * 3600;
+
 			currentTime = new Date(this.app.getSetting().getCurrentTime().getTime()
 					+ item.getEstimatedUsageDuration().toMillis() + walkingTime);
 		}
@@ -340,9 +338,37 @@ public class AccuracyEvaluationController implements Initializable {
 			iv_item.setX(this.iv_map.getFitWidth() - e.getKey().getGeoposition().getLatitude() * scale
 					- this.offsetX * scale);
 			iv_item.setY(e.getKey().getGeoposition().getLongitude() * scale - this.offsetY * scale);
+			iv_item.getStyleClass().add("clickable");
+
+			iv_item.setOnMouseClicked(new EventHandler<MouseEvent>() {
+				@Override
+				public void handle(MouseEvent t) {
+
+					int idx = itemList.indexOf(e);
+
+					if (idx >= 0) {
+						tv_items.getSelectionModel().select(idx);
+						tv_items.scrollTo(idx);
+						selectItem(null);
+					}
+				}
+			});
 
 			imageViewList.add(iv_item);
 		}
+	}
+
+	public long getOptimizedItemUsageDuration() {
+		long tUsage = 0;
+
+		if (this.usedItems.size() < this.app.getMaxNumOfItemsToUse()) {
+			tUsage = this.app.getSetting().getTimeToDeparture() / (this.app.getMaxNumOfItemsToUse());
+			tUsage -= 200;
+		} else {
+			tUsage = this.app.getSetting().getTimeToDeparture();
+		}
+
+		return tUsage;
 	}
 
 	// ===============================================

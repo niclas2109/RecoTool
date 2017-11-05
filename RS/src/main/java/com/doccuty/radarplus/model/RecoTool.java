@@ -100,6 +100,9 @@ public class RecoTool {
 	// Save and read file items scores to/from file
 	private ResultTracker resultTracker;
 
+	private Duration delayDuration;
+	private boolean delayPromptSent;
+
 	List<SystemPrompt> prompts;
 
 	public static Preferences prefs;
@@ -116,7 +119,7 @@ public class RecoTool {
 		this.timerRunning = false;
 
 		this.server = new RecoToolMqttServer(this);
-
+		
 		this.startTime = Calendar.getInstance();
 		this.startPosition = new Geoposition();
 		this.endPosition = new Geoposition();
@@ -125,11 +128,12 @@ public class RecoTool {
 
 		this.walkingSpeedCalculator = new WalkingSpeedCalculator(this);
 
-		this.hideAll = true;
-
 		this.resultTracker = new ResultTracker();
 
 		RecoTool.prefs = Preferences.userNodeForPackage(getClass());
+
+		this.delayPromptSent = false;
+		this.hideAll = true;
 	}
 
 	public void init() {
@@ -174,7 +178,8 @@ public class RecoTool {
 
 			// Other setting
 			this.withRealtimeUserPositionUpdateAccuracyEvaluationMap(
-					RecoTool.prefs.getBoolean("realtimeUserPositionUpdateAccuracyEvaluationMap", false));
+					RecoTool.prefs.getBoolean("realtimeUserPositionUpdateAccuracyEvaluationMap", false))
+					.withDelayDuration(Duration.ofMinutes(RecoTool.prefs.getLong("delayDuration", 0)));
 
 			this.walkingTrainingPosition = mapper.treeToValue(
 					mapper.readTree(RecoTool.prefs.get("walkingTrainingPosition", "{}")), Geoposition.class);
@@ -529,6 +534,18 @@ public class RecoTool {
 				firePropertyChange(PROPERTY_EVALUATION_DURATION, null,
 						Duration.ofMillis(RecoTool.setting.getTimeToDeparture()));
 
+				if (delayDuration.toMinutes() > 0 && !delayPromptSent
+						&& delayDuration.toMillis() <= (evaluationDuration.toMillis() - setting.getTimeToDeparture())) {
+					SystemPrompt sP = prompts.stream().filter(p -> p.getID() == 18).collect(Collectors.toList()).get(0);
+
+					try {
+						sendSystemPrompt(sP);
+						delayPromptSent = true;
+					} catch (JSONException | JsonProcessingException | MqttException e) {
+						e.printStackTrace();
+					}
+				}
+
 				if (setting.getTimeToDeparture() <= 0 && timerRunning || !timerRunning) {
 					evaluationTimer.cancel();
 					timerRunning = false;
@@ -566,6 +583,8 @@ public class RecoTool {
 		RecoTool.setting.setTrafficJunction(this.startTrafficJunction);
 
 		this.assignTrafficJunctionToRandomItems();
+
+		this.delayPromptSent = false;
 
 		// send start position and simulated start time to CAVE subscriber
 		if (this.getMQTTClient().isConnected()
@@ -1049,6 +1068,7 @@ public class RecoTool {
 			msg = msg.replace("%nextConnectionPosition%", this.getNextConnectionPositionIdentifier());
 		}
 
+		msg = msg.replace("%delayDuration%", this.getDelayDuration().toMinutes() + "");
 		msg = msg.replace("%mode%", this.getRecommender().getMode());
 
 		prompt.setMessage(msg);
@@ -1470,6 +1490,24 @@ public class RecoTool {
 
 	public RecoTool withWalkingSpeedCalculator(WalkingSpeedCalculator value) {
 		this.setWalkingSpeedCalculator(value);
+		return this;
+	}
+
+	// =========================================
+
+	public Duration getDelayDuration() {
+		if (this.delayDuration == null)
+			this.delayDuration = Duration.ofMinutes(0);
+
+		return this.delayDuration;
+	}
+
+	public void setDelayDuration(Duration value) {
+		this.delayDuration = value;
+	}
+
+	public RecoTool withDelayDuration(Duration value) {
+		this.setDelayDuration(value);
 		return this;
 	}
 

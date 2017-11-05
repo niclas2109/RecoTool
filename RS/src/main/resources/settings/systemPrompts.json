@@ -82,5 +82,10 @@
 		"id": 17,
 		"mode": "system-prompt-info",
 		"message": "%firstname%, dein Anschluss fährt von %nextConnectionPosition%!"
+	},
+	{
+		"id": 18,
+		"mode": "system-prompt-error",
+		"message": "Dein Anschluss hat eine Verspätung von ca. %delayDuration% min."
 	}
 ]

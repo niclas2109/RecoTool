@@ -131,6 +131,12 @@ public class SettingsController implements Initializable {
 	@FXML
 	Label lbl_evaluationFilesDirectory;
 
+	@FXML
+	CheckBox cb_delayEnable;
+
+	@FXML
+	TextField tf_delayDuration;
+
 	ObservableList<TrafficJunction> trafficJunctions;
 
 	private Stage stage;
@@ -236,9 +242,11 @@ public class SettingsController implements Initializable {
 
 			this.cb_useAverageUsageDuration.setSelected(this.app.getMaxNumOfItemsToUse() == 0);
 
-			tf_numberOfItemsToUse.setText(this.app.getMaxNumOfItemsToUse() + "");
-
+			this.tf_numberOfItemsToUse.setText(this.app.getMaxNumOfItemsToUse() + "");
 			this.updateCheckBoxUsageAvUsageDuration(null);
+
+			this.tf_delayDuration.setText(this.app.getDelayDuration().toMinutes() + "");
+			this.updateCheckBoxDelayDuration(null);
 
 			if (this.app == null)
 				return;
@@ -318,7 +326,8 @@ public class SettingsController implements Initializable {
 				.withUseGeocoordinates(this.cb_useGeocoordinates.isSelected())
 				.withRealtimeUserPositionUpdateAccuracyEvaluationMap(
 						this.cb_realtimeUpdateAccuracyEvaluationMap.isSelected())
-				.withMaxNumOfItemsToUse(maxNumOfItems);
+				.withMaxNumOfItemsToUse(maxNumOfItems)
+				.withDelayDuration(Duration.ofMinutes(Long.parseLong(this.tf_delayDuration.getText())));
 
 		this.app.getRecommender().withSerendipityEnabled(this.cb_serendipityEnabled.isSelected())
 				.withWeightingEnabled(this.cb_weightingEnabled.isSelected());
@@ -408,11 +417,13 @@ public class SettingsController implements Initializable {
 		RecoTool.prefs.putInt("maxNumOfItemsToUse", this.app.getMaxNumOfItemsToUse());
 
 		RecoTool.prefs.put("evaluationFilesDirectory", this.lbl_evaluationFilesDirectory.getText());
+
+		RecoTool.prefs.putLong("delayDuration", this.app.getDelayDuration().toMinutes());
 	}
 
 	@FXML
 	public void updateCheckBoxUsageAvUsageDuration(KeyEvent ev) {
-		boolean active = Integer.parseInt(this.tf_numberOfItemsToUse.getText()) <= 0;
+		boolean active = this.tf_numberOfItemsToUse.getText().compareTo("") != 0 && Integer.parseInt(this.tf_numberOfItemsToUse.getText()) <= 0;
 		this.cb_useAverageUsageDuration.setSelected(active);
 
 		setMaxNumberOfItemsToZero(null);
@@ -425,6 +436,24 @@ public class SettingsController implements Initializable {
 			this.tf_numberOfItemsToUse.setText("0");
 		} else {
 			this.tf_numberOfItemsToUse.setDisable(false);
+		}
+	}
+
+	@FXML
+	public void updateCheckBoxDelayDuration(KeyEvent ev) {
+		boolean active = this.tf_delayDuration.getText().compareTo("") != 0 && Long.parseLong(this.tf_delayDuration.getText()) <= 0;
+		this.cb_delayEnable.setSelected(active);
+
+		this.setDelayDuration(null);
+	}
+
+	@FXML
+	public void setDelayDuration(MouseEvent ev) {
+		if (this.cb_delayEnable.isSelected()) {
+			this.tf_delayDuration.setDisable(true);
+			this.tf_delayDuration.setText("0");
+		} else {
+			this.tf_delayDuration.setDisable(false);
 		}
 	}
 

@@ -31,3 +31,10 @@ Database configurations can be made in
 Create an executable *.jar by executing:
 
 	mvn clean compile assembly:single
+	
+#Credits
+All icon are taken from
+	https://icons8.com/
+	
+The RadAR+ Logo is taken from University of Kassel:
+	https://www.uni-kassel.de/maschinenbau/institute/ifa/mensch-maschine-systemtechnik/startseite.html

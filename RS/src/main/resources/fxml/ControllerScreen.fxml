@@ -86,7 +86,7 @@
                               <Image url="@../icons/abidance-mode.png" />
                            </image>
                         </ImageView>
-                        <Label fx:id="lbl_remainingTime" alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="60.0" onMouseClicked="#toggleTimerMode" text="1:00:00" textAlignment="CENTER" />
+                        <Label fx:id="lbl_remainingTime" alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="60.0" onMouseClicked="#toggleTimerMode" styleClass="clickable" text="1:00:00" textAlignment="CENTER" />
                      </children>
                   </VBox>
                </children>
