@@ -101,6 +101,7 @@ public class RecoTool {
 	private ResultTracker resultTracker;
 
 	private Duration delayDuration;
+	private Duration delayPromptTimer;
 	private boolean delayPromptSent;
 
 	List<SystemPrompt> prompts;
@@ -179,7 +180,8 @@ public class RecoTool {
 			// Other setting
 			this.withRealtimeUserPositionUpdateAccuracyEvaluationMap(
 					RecoTool.prefs.getBoolean("realtimeUserPositionUpdateAccuracyEvaluationMap", false))
-					.withDelayDuration(Duration.ofMinutes(RecoTool.prefs.getLong("delayDuration", 0)));
+					.withDelayDuration(Duration.ofMinutes(RecoTool.prefs.getLong("delayDuration", 0)))
+					.withDelayPromptTimer(Duration.ofMinutes(RecoTool.prefs.getLong("delayPromptTimer", 0)));
 
 			this.walkingTrainingPosition = mapper.treeToValue(
 					mapper.readTree(RecoTool.prefs.get("walkingTrainingPosition", "{}")), Geoposition.class);
@@ -535,7 +537,7 @@ public class RecoTool {
 						Duration.ofMillis(RecoTool.setting.getTimeToDeparture()));
 
 				if (delayDuration.toMinutes() > 0 && !delayPromptSent
-						&& delayDuration.toMillis() <= (evaluationDuration.toMillis() - setting.getTimeToDeparture())) {
+						&& delayPromptTimer.toMillis() <= (evaluationDuration.toMillis() - setting.getTimeToDeparture())) {
 					SystemPrompt sP = prompts.stream().filter(p -> p.getID() == 18).collect(Collectors.toList()).get(0);
 
 					try {
@@ -1508,6 +1510,24 @@ public class RecoTool {
 
 	public RecoTool withDelayDuration(Duration value) {
 		this.setDelayDuration(value);
+		return this;
+	}
+
+	// =========================================
+
+	public Duration getDelayPromptTimer() {
+		if (this.delayPromptTimer == null)
+			this.delayPromptTimer = Duration.ofMinutes(0);
+
+		return this.delayPromptTimer;
+	}
+
+	public void setDelayPromptTimer(Duration value) {
+		this.delayPromptTimer = value;
+	}
+
+	public RecoTool withDelayPromptTimer(Duration value) {
+		this.setDelayPromptTimer(value);
 		return this;
 	}
 

@@ -137,6 +137,9 @@ public class SettingsController implements Initializable {
 	@FXML
 	TextField tf_delayDuration;
 
+	@FXML
+	TextField tf_delayPromptTimer;
+
 	ObservableList<TrafficJunction> trafficJunctions;
 
 	private Stage stage;
@@ -246,6 +249,7 @@ public class SettingsController implements Initializable {
 			this.updateCheckBoxUsageAvUsageDuration(null);
 
 			this.tf_delayDuration.setText(this.app.getDelayDuration().toMinutes() + "");
+			this.tf_delayPromptTimer.setText(this.app.getDelayPromptTimer().toMinutes() + "");
 			this.updateCheckBoxDelayDuration(null);
 
 			if (this.app == null)
@@ -327,7 +331,8 @@ public class SettingsController implements Initializable {
 				.withRealtimeUserPositionUpdateAccuracyEvaluationMap(
 						this.cb_realtimeUpdateAccuracyEvaluationMap.isSelected())
 				.withMaxNumOfItemsToUse(maxNumOfItems)
-				.withDelayDuration(Duration.ofMinutes(Long.parseLong(this.tf_delayDuration.getText())));
+				.withDelayDuration(Duration.ofMinutes(Long.parseLong(this.tf_delayDuration.getText())))
+				.withDelayPromptTimer(Duration.ofMinutes(Long.parseLong(this.tf_delayPromptTimer.getText())));
 
 		this.app.getRecommender().withSerendipityEnabled(this.cb_serendipityEnabled.isSelected())
 				.withWeightingEnabled(this.cb_weightingEnabled.isSelected());
@@ -418,12 +423,14 @@ public class SettingsController implements Initializable {
 
 		RecoTool.prefs.put("evaluationFilesDirectory", this.lbl_evaluationFilesDirectory.getText());
 
+		RecoTool.prefs.putLong("delayPromptTimer", this.app.getDelayPromptTimer().toMinutes());
 		RecoTool.prefs.putLong("delayDuration", this.app.getDelayDuration().toMinutes());
 	}
 
 	@FXML
 	public void updateCheckBoxUsageAvUsageDuration(KeyEvent ev) {
-		boolean active = this.tf_numberOfItemsToUse.getText().compareTo("") != 0 && Integer.parseInt(this.tf_numberOfItemsToUse.getText()) <= 0;
+		boolean active = this.tf_numberOfItemsToUse.getText().compareTo("") != 0
+				&& Integer.parseInt(this.tf_numberOfItemsToUse.getText()) <= 0;
 		this.cb_useAverageUsageDuration.setSelected(active);
 
 		setMaxNumberOfItemsToZero(null);
@@ -441,7 +448,8 @@ public class SettingsController implements Initializable {
 
 	@FXML
 	public void updateCheckBoxDelayDuration(KeyEvent ev) {
-		boolean active = this.tf_delayDuration.getText().compareTo("") != 0 && Long.parseLong(this.tf_delayDuration.getText()) <= 0;
+		boolean active = this.tf_delayDuration.getText().compareTo("") != 0
+				&& Long.parseLong(this.tf_delayDuration.getText()) <= 0;
 		this.cb_delayEnable.setSelected(active);
 
 		this.setDelayDuration(null);
@@ -451,9 +459,13 @@ public class SettingsController implements Initializable {
 	public void setDelayDuration(MouseEvent ev) {
 		if (this.cb_delayEnable.isSelected()) {
 			this.tf_delayDuration.setDisable(true);
+			this.tf_delayPromptTimer.setDisable(true);
+
 			this.tf_delayDuration.setText("0");
+			this.tf_delayPromptTimer.setText("0");
 		} else {
 			this.tf_delayDuration.setDisable(false);
+			this.tf_delayPromptTimer.setDisable(false);
 		}
 	}
 
