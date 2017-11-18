@@ -229,10 +229,9 @@ public class WoZController implements Initializable {
 
 		this.app.addPropertyChangeListener(RecoTool.PROPERTY_ROUTE_CALCULATED, listener);
 		this.app.addPropertyChangeListener(RecoTool.PROPERTY_NAVIGATION_FINISHED, listener);
+		this.app.addPropertyChangeListener(RecoTool.PROPERTY_ITEM_USAGE_DONE, listener);
 		this.app.addPropertyChangeListener(RecoTool.PROPERTY_EVALUATION_PREPARED, listener);
 		this.app.addPropertyChangeListener(RecoTool.PROPERTY_HIDE_ALL, listener);
-
-		this.app.addPropertyChangeListener(RecoTool.PROPERTY_ITEM_USAGE_DONE, listener);
 
 		this.app.addPropertyChangeListener(RecoTool.PROPERTY_SWITCH_MODE, listener);
 
@@ -347,8 +346,8 @@ public class WoZController implements Initializable {
 			this.attributeData.add(e);
 		}
 
-		this.updateRecommendationButtons();
 		this.app.setCurrentItem(null);
+		this.updateRecommendationButtons();
 
 		LOG.info("Recommendations updated");
 	}
@@ -571,6 +570,11 @@ public class WoZController implements Initializable {
 		}
 	}
 
+	public void canceledNavigation() {
+		this.btn_startNavigation.setDisable(false);
+		this.toggleStartNavigationButton();
+	}
+
 	public void finishedNavigation(Item item) {
 		try {
 			this.showSystemPrompt(SystemPrompt.SYSTEM_PROMPT_MODE_INFO,
@@ -622,15 +626,47 @@ public class WoZController implements Initializable {
 		this.app.itemUsed();
 	}
 
-	public void itemUsageDone(Item item) {
-		this.lbl_lastUsedItem.setText(item.getName());
-		this.lbl_score
-				.setText((Math.round(this.app.getRecommender().getRecommendations().get(item) * 1000) / 1000.0) + "");
+	
+	/**
+	 * Update presentation of last used item
+	 * Called after navigation is finished or itemUsageDone button ist clicked
+	 * @param item
+	 */
+	
+	public void itemUsageUpdate(Item item) {
 
-		this.lbl_position.setText(
-				(new ArrayList<Item>(this.app.getRecommender().getRecommendations().keySet()).indexOf(item) + 1) + "");
+		if (item == null)
+			return;
+
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+
+				lbl_lastUsedItem.setText(item.getName());
+
+				if (app.getRecommender().getRecommendations() == null
+						|| app.getRecommender().getRecommendations().get(item) == null) {
+					lbl_score.setText("");
+					lbl_position.setText("");
+					return;
+				}
+
+				lbl_score.setText(
+						(Math.round(app.getRecommender().getRecommendations().get(item) * 1000) / 1000.0) + "");
+				lbl_position.setText(
+						(new ArrayList<Item>(app.getRecommender().getRecommendations().keySet()).indexOf(item) + 1)
+								+ "");
+
+			}
+		});
+
 	}
 
+	/**
+	 * Hide all items in dataglasses
+	 * @param ev
+	 */
+	
 	@FXML
 	public void hideAll(MouseEvent ev) {
 		try {
@@ -672,7 +708,12 @@ public class WoZController implements Initializable {
 		this.parent.openSystemPromptController(null);
 	}
 
-	// Show system prompt
+	/**
+	 * Show system prompt
+	 * @param mode
+	 * @param message
+	 * @throws IOException
+	 */
 	public void showSystemPrompt(String mode, String message) throws IOException {
 
 		this.hbox_systemPrompt.getStyleClass().removeAll(SystemPrompt.SYSTEM_PROMPT_MODE_INFO,
@@ -701,11 +742,19 @@ public class WoZController implements Initializable {
 		});
 	}
 
+	/**
+	 * Hide system prompt
+	 * Called by clicking on prompt in WoZ-Controller
+	 * @param ev
+	 */
 	public void hideSystemPrompt(MouseEvent ev) {
 		this.hbox_systemPrompt.setVisible(false);
 	}
 
-	// Update user data
+	
+	/**
+	 *  Update user data
+	 */
 	public void updateUserData() {
 		StringBuilder s = new StringBuilder();
 
@@ -722,7 +771,10 @@ public class WoZController implements Initializable {
 		lbl_userName.setText(s.toString());
 	}
 
-	// distance in [km]
+	/**
+	 * Update distance to end position in [km]
+	 * @param distance
+	 */
 	public void updateDistanceToEndPosition(double distance) {
 		Platform.runLater(new Runnable() {
 			@Override
@@ -778,10 +830,9 @@ public class WoZController implements Initializable {
 				btn_generateNewRecommendations.setDisable(false);
 
 				Alert alert = new Alert(AlertType.CONFIRMATION);
-				alert.setTitle("Evaluation abgeschlossen");
+				alert.setTitle(bundle.getString("evaluationFinished"));
 				alert.setHeaderText(null);
-				alert.setContentText(
-						"Die Evaluation wurde beendet! Soll das Setting inkl. aller verwendeten Items gelöscht werden?");
+				alert.setContentText(bundle.getString("evaluationFinishedMessage"));
 
 				ButtonType cancelButton = new ButtonType("Setting beibehalten", ButtonData.NO);
 
@@ -794,6 +845,14 @@ public class WoZController implements Initializable {
 					app.stopEvaluation(false);
 				}
 
+				try {
+					String msg = bundle.getString("evaluationFinishedSummery");
+					msg = msg.replace("%number%", app.getSetting().getUsedItem().size() + "");
+
+					showSystemPrompt(SystemPrompt.SYSTEM_PROMPT_MODE_INFO, msg);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		});
 	}

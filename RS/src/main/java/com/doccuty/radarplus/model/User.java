@@ -239,7 +239,8 @@ public class User extends AttributeTree {
 		}
 		Calendar cal = this.dateOfBirth;
 
-		LocalDate b = LocalDate.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
+		// Conversion from Calendar to LocalDate requires month + 1
+		LocalDate b = LocalDate.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH));
 		long age = b.until(LocalDate.now(), ChronoUnit.YEARS);
 
 		return (int) age;

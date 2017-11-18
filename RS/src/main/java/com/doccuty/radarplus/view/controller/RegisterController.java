@@ -166,11 +166,11 @@ public class RegisterController implements Initializable {
 
 	@FXML
 	protected void changeDateOfBirth(ActionEvent e) {
-
 		Calendar c = new GregorianCalendar();
-		c.set(this.dp_dateOfBirth.getValue().getYear(), this.dp_dateOfBirth.getValue().getMonthValue(),
-				this.dp_dateOfBirth.getValue().getDayOfMonth());
-
+		
+		int month = this.dp_dateOfBirth.getValue().getMonthValue() - 1;
+		c.set(this.dp_dateOfBirth.getValue().getYear(), month, this.dp_dateOfBirth.getValue().getDayOfMonth());
+		
 		this.app.getCurrentUser().setDateOfBirth(c);
 	}
 
@@ -192,23 +192,10 @@ public class RegisterController implements Initializable {
 		}
 
 		if (this.app.getCurrentUser().getDateOfBirth() == null) {
-			Calendar c = new GregorianCalendar();
-			c.set(this.dp_dateOfBirth.getValue().getYear(), this.dp_dateOfBirth.getValue().getMonthValue(),
-					this.dp_dateOfBirth.getValue().getDayOfMonth());
-
-			this.app.getCurrentUser().setDateOfBirth(c);
 			hbox_systemPrompt.setVisible(true);
 			lbl_systemPrompt.setText(this.bundle.getString("register.dateOfBirthMissing"));
 		}
 
-		/*
-		if (!rbtn_female.isSelected() && !rbtn_male.isSelected()) {
-			hbox_systemPrompt.setVisible(true);
-			lbl_systemPrompt.setText(this.bundle.getString("register.genderMissing"));
-			return;
-		}
-		 */
-		
 		if (rbtn_female.isSelected()) {
 			app.getCurrentUser().setGender((Attribute) rbtn_female.getUserData());
 		} else {
@@ -244,15 +231,23 @@ public class RegisterController implements Initializable {
 		this.hbox_systemPrompt.setVisible(false);
 	}
 
+	/**
+	 * Fill registration form with given user data
+	 * @param value
+	 */
 	public void fillWithUserData(User value) {
 
 		this.tf_firstname.setText(value.getFirstname());
 		this.tf_lastname.setText(value.getLastname());
 
 		if (value.getDateOfBirth() != null) {
-			Calendar date = value.getDateOfBirth();
-			dp_dateOfBirth.setValue(
-					LocalDate.of(date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DAY_OF_MONTH)));
+			try {
+				Calendar date = value.getDateOfBirth();
+				dp_dateOfBirth.setValue(LocalDate.of(date.get(Calendar.YEAR), date.get(Calendar.MONTH) + 1,
+						date.get(Calendar.DAY_OF_MONTH)));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 
 		if (value.getGender() != null) {
@@ -275,7 +270,7 @@ public class RegisterController implements Initializable {
 			this.rbtn_nonvegetarian.fire();
 		}
 
-		if(this.app.getCurrentUser().getId() > 0)
+		if (this.app.getCurrentUser().getId() > 0)
 			this.btn_register.setText(this.bundle.getString("update"));
 		else
 			this.btn_register.setText(this.bundle.getString("register"));

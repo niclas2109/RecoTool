@@ -1,13 +1,17 @@
 package com.doccuty.radarplus.view.controller;
 
-import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.time.Duration;
+import java.util.ResourceBundle;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.json.JSONException;
 
 import com.doccuty.radarplus.model.SystemPrompt;
+import com.doccuty.radarplus.MainApp;
 import com.doccuty.radarplus.model.RecoTool;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +20,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
@@ -23,7 +28,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
-public class SystemPromptController {
+public class SystemPromptController implements Initializable {
 
 	private Stage stage;
 
@@ -43,9 +48,13 @@ public class SystemPromptController {
 	@FXML
 	RadioButton rbtn_infoPrompt;
 
+	@FXML
+	RadioButton rbtn_efficiencyPrompt;
+
 	SystemPrompt currentPrompt;
 
-	public void initialize() {
+	@Override
+	public void initialize(URL url, ResourceBundle rb) {
 
 		this.cb_systemMessage.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
 			@Override
@@ -56,6 +65,10 @@ public class SystemPromptController {
 						&& currentPrompt.getMode().compareTo(SystemPrompt.SYSTEM_PROMPT_MODE_ERROR) == 0) {
 					rbtn_errorPrompt.setSelected(true);
 					alertType = SystemPrompt.SYSTEM_PROMPT_MODE_ERROR;
+				} else if (currentPrompt.getMode() != null
+						&& currentPrompt.getMode().compareTo(SystemPrompt.SYSTEM_PROMPT_MODE_EFFICIENCY) == 0) {
+					rbtn_efficiencyPrompt.setSelected(true);
+					alertType = SystemPrompt.SYSTEM_PROMPT_MODE_EFFICIENCY;
 				} else {
 					rbtn_infoPrompt.setSelected(true);
 					alertType = SystemPrompt.SYSTEM_PROMPT_MODE_INFO;
@@ -92,9 +105,13 @@ public class SystemPromptController {
 		});
 
 		ObjectMapper mapper = new ObjectMapper();
-		File from = new File(getClass().getClassLoader().getResource("settings/systemPromptMessages.json").getPath());
 
 		try {
+			InputStream from = this.getClass().getResourceAsStream(MainApp.SYSTEM_PROMPTS_JSON_FILE);
+
+			if (from == null)
+				throw new FileNotFoundException("File " + MainApp.SYSTEM_PROMPTS_JSON_FILE + " not found!");
+
 			for (SystemPrompt prompt : mapper.readValue(from, SystemPrompt[].class)) {
 				this.cb_systemMessage.getItems().add(prompt);
 			}
@@ -107,17 +124,23 @@ public class SystemPromptController {
 
 		if (rbtn_errorPrompt.isSelected())
 			this.alertType = SystemPrompt.SYSTEM_PROMPT_MODE_ERROR;
+		else if (rbtn_efficiencyPrompt.isSelected())
+			this.alertType = SystemPrompt.SYSTEM_PROMPT_MODE_EFFICIENCY;
 		else
 			this.alertType = SystemPrompt.SYSTEM_PROMPT_MODE_INFO;
+
+
+		this.tf_systemMessage.requestFocus();
 	}
 
 	@FXML
 	public void changePromptType(ActionEvent ev) {
-		if (rbtn_errorPrompt.isSelected()) {
+		if (rbtn_errorPrompt.isSelected())
 			this.alertType = SystemPrompt.SYSTEM_PROMPT_MODE_ERROR;
-		} else {
+		else if (rbtn_efficiencyPrompt.isSelected())
+			this.alertType = SystemPrompt.SYSTEM_PROMPT_MODE_EFFICIENCY;
+		else
 			this.alertType = SystemPrompt.SYSTEM_PROMPT_MODE_INFO;
-		}
 	}
 
 	@FXML

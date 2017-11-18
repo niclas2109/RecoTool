@@ -35,7 +35,7 @@ public class ConstraintBasedFilter {
 			Item item = it.next();
 
 			if (this.recommender != null && (item.getTrafficJunction() == null || !item.getTrafficJunction()
-					.equals(this.recommender.getStudyApp().getSetting().getTrafficJunction()))) {
+					.equals(this.recommender.getApp().getSetting().getTrafficJunction()))) {
 				it.remove();
 				continue;
 			}

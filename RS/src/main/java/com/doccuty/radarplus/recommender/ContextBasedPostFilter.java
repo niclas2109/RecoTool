@@ -151,7 +151,8 @@ public class ContextBasedPostFilter {
 	 */
 	private boolean checkReachability(Item item, Setting setting, User user) {
 
-		if (this.recommender.getStudyApp() == null)
+		if (this.recommender.getApp() == null || this.recommender.getApp().getNewEvaluation()
+				&& this.recommender.getApp().getDelayDuration().toMillis() > 0)
 			return true;
 
 		if (item.getGeoposition() != null && setting.getGeoposition() != null) {
@@ -159,7 +160,7 @@ public class ContextBasedPostFilter {
 			// calculate current distance to item
 			double distance = 0;
 
-			if (this.recommender.getStudyApp().getUseGeocoordinates()) {
+			if (this.recommender.getApp().getUseGeocoordinates()) {
 				distance = item.getGeoposition().distance(setting.getGeoposition());
 				distance += item.getGeoposition().distance(setting.getNextDeparture());
 			} else {
@@ -170,7 +171,7 @@ public class ContextBasedPostFilter {
 			}
 
 			// time to reach the item in [ms]
-			long speed = this.recommender.getStudyApp().getCurrentUser().getCurrentWalkingSpeed();
+			long speed = this.recommender.getApp().getCurrentUser().getCurrentWalkingSpeed();
 
 			if (speed >= user.getAvgWalkingSpeed()) {
 				if (speed >= user.getMaxWalkingSpeed()) {
@@ -187,20 +188,14 @@ public class ContextBasedPostFilter {
 			// estimated time for item usage in [ms]
 			long tUsage = 0;
 
-			if (this.recommender.getStudyApp().getMaxNumOfItemsToUse() == 0) {
+			if (this.recommender.getApp().getNumOfItemsToUse() == 0) {
 				tUsage = item.getEstimatedUsageDuration().toMillis();
 			} else {
-				tUsage = this.recommender.getStudyApp().getOptimizedItemUsageDuration();
-			}
-
-			// add additional time due to uncertainty
-			long delay = this.recommender.getStudyApp().getSetting().getDelay();
-			if (delay > 0) {
-				delay *= 0.1;
+				tUsage = this.recommender.getApp().getOptimizedItemUsageDuration();
 			}
 
 			// remove items that can not be used
-			if (setting.getTimeToDeparture() < tRoute + tUsage + delay) {
+			if (setting.getTimeToDeparture() < tRoute + tUsage) {
 				return false;
 			}
 		}

@@ -25,7 +25,7 @@ public class UserDAO {
 
 	public List<User> findAll() {
 		Session session = HibernateUtil.getSessionFactory().openSession();
-		List<User> list = (List<User>) session.createQuery("FROM User").list();
+		List<User> list = (List<User>) session.createQuery("FROM User ORDER BY firstname, lastname").list();
 		session.close();
 		return list;
 	}

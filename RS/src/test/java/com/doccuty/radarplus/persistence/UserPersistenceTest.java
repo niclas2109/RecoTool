@@ -11,9 +11,6 @@ import org.junit.Test;
 
 import com.doccuty.radarplus.model.Attribute;
 import com.doccuty.radarplus.model.Disability;
-import com.doccuty.radarplus.model.Item;
-import com.doccuty.radarplus.model.Rating;
-import com.doccuty.radarplus.model.Setting;
 import com.doccuty.radarplus.model.User;
 import com.doccuty.radarplus.persistence.UserDAO;
 

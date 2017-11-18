@@ -5,6 +5,8 @@ import java.beans.PropertyChangeSupport;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -16,6 +18,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.prefs.Preferences;
@@ -68,15 +71,17 @@ public class RecoTool {
 
 	private int maxNumOfItems;
 	private int maxNumOfProductivityItems;
-	private int maxNumOfItemsToUse;
+	private int numOfItemsToUse;
 
 	private boolean randomizeItemGeoposition;
 
 	private boolean useGeocoordinates;
 	private boolean realtimeUserPositionUpdateAccuracyEvaluationMap;
 
+	// Hide item list in data glasses
 	private boolean hideAll;
 
+	// Updates time during evaluation
 	Timer evaluationTimer;
 	boolean timerRunning;
 
@@ -84,7 +89,10 @@ public class RecoTool {
 
 	String nextConnectionPositionIdentifier;
 
+	// Current traffic junction
 	private TrafficJunction startTrafficJunction;
+
+	// Next traffic junction
 	private TrafficJunction endTrafficJunction;
 
 	// Position in the beginning of the evaluation
@@ -100,12 +108,19 @@ public class RecoTool {
 	// Save and read file items scores to/from file
 	private ResultTracker resultTracker;
 
+	// Duration of automated delay
 	private Duration delayDuration;
+
+	// Timestamp when to send delay prompt
 	private Duration delayPromptTimer;
 	private boolean delayPromptSent;
 
+	private boolean newEvaluation = false;
+
+	// List of all prompts in the system
 	List<SystemPrompt> prompts;
 
+	// Preferences
 	public static Preferences prefs;
 
 	public RecoTool() {
@@ -113,14 +128,14 @@ public class RecoTool {
 		this.user = new User();
 		RecoTool.setting = new Setting();
 
-		this.recommender = new Recommender().withStudyApp(this);
+		this.recommender = new Recommender().withApp(this);
 		this.trainer = new Trainer().withStudyApp(this).withUser(this.user);
 
 		this.evaluationTimer = new Timer();
 		this.timerRunning = false;
 
 		this.server = new RecoToolMqttServer(this);
-		
+
 		this.startTime = Calendar.getInstance();
 		this.startPosition = new Geoposition();
 		this.endPosition = new Geoposition();
@@ -155,7 +170,7 @@ public class RecoTool {
 			this.endTrafficJunction = mapper.treeToValue(
 					mapper.readTree(RecoTool.prefs.get("endTrafficJunction", "{}")), TrafficJunction.class);
 
-			this.nextConnectionPositionIdentifier = RecoTool.prefs.get("nextConnectionPositionIdentifier", "Gleis 2");
+			this.nextConnectionPositionIdentifier = RecoTool.prefs.get("nextConnectionPositionIdentifier", "Gleis 23");
 
 			this.startPosition = mapper.treeToValue(mapper.readTree(RecoTool.prefs.get("startPosition", "{}")),
 					Geoposition.class);
@@ -166,7 +181,7 @@ public class RecoTool {
 
 			// Item settings
 			this.withMaxNumOfItems(RecoTool.prefs.getInt("maxNumOfItems", 1))
-					.withMaxNumOfProductivityItems(RecoTool.prefs.getInt("maxNumOfItems", 0))
+					.withMaxNumOfProductivityItems(RecoTool.prefs.getInt("maxNumOfProductivityItems", 0))
 					.withUseGeocoordinates(RecoTool.prefs.getBoolean("useGeocoordinates", false))
 					.withRandomizeItemGeoposition(RecoTool.prefs.getBoolean("randomizeItemGeoposition", true));
 
@@ -186,7 +201,7 @@ public class RecoTool {
 			this.walkingTrainingPosition = mapper.treeToValue(
 					mapper.readTree(RecoTool.prefs.get("walkingTrainingPosition", "{}")), Geoposition.class);
 
-			this.withMaxNumOfItemsToUse(RecoTool.prefs.getInt("maxNumOfItemsToUse", 1));
+			this.withNumOfItemsToUse(RecoTool.prefs.getInt("maxNumOfItemsToUse", 5));
 
 		} catch (NullPointerException | IOException e) {
 			e.printStackTrace();
@@ -350,8 +365,9 @@ public class RecoTool {
 	}
 
 	/**
-	 * Get different and randomized Coordinates for selected Items geoCoordinates is
-	 * a list of additional Geoposition objects
+	 * Get unique and randomized Coordinates for selected Items geoCoordinates is a
+	 * list of additional position objects. Maximum number of items equals maximum
+	 * number of different positions.
 	 * 
 	 * @param list
 	 * @param geoCoordinates
@@ -368,13 +384,22 @@ public class RecoTool {
 				break;
 		}
 
+		if (geoCoordinates.size() < this.maxNumOfItems)
+			this.maxNumOfItems = geoCoordinates.size();
+
 		Random rand = new Random();
 
 		for (Iterator<Item> it = list.iterator(); it.hasNext();) {
 			Item item = it.next();
 
-			if (geoCoordinates.size() == 0)
-				break;
+			if (!this.startTrafficJunction.equals(item.getTrafficJunction()))
+				continue;
+
+			if (geoCoordinates.size() == 0) {
+				// Remove items from traffic junction to avoid duplicates on same position
+				item.setTrafficJunction(null);
+				continue;
+			}
 
 			int idx = rand.nextInt(geoCoordinates.size());
 
@@ -391,11 +416,10 @@ public class RecoTool {
 
 	public LinkedHashMap<Item, Double> updateBySetting(User user) {
 
-		// Pointer zeigen auf gleiches obj... vllt echte kopie machen
 		LinkedHashMap<Item, Double> oldRecommendations = this.recommender.getRecommendations();
 		LinkedHashMap<Item, Double> recommendations = this.recommender.updateBySetting(user, RecoTool.setting);
 
-		// Check of old and new order of recommendations to minimize network traffic
+		// Check old and new order of recommendations to minimize network traffic
 		boolean equal = oldRecommendations.size() == recommendations.size();
 
 		Iterator<Item> it1 = oldRecommendations.keySet().iterator();
@@ -479,8 +503,14 @@ public class RecoTool {
 		for (Iterator<Entry<Item, Setting>> it = RecoTool.setting.getUsedItem().entrySet().iterator(); it.hasNext();) {
 			Entry<Item, Setting> e = it.next();
 
-			// calculate new score
-			double rating = this.recommender.getOriginalRecommendations().get(e.getKey());
+			if (e.getKey().getId() == 0)
+				continue;
+
+			// Save the original score for used items
+			double rating = 0;
+
+			if (!this.recommender.getOriginalRecommendations().isEmpty())
+				rating = this.recommender.getOriginalRecommendations().get(e.getKey());
 
 			Setting s = e.getValue();
 
@@ -521,8 +551,6 @@ public class RecoTool {
 		if (this.user == null || this.user.getId() == 0)
 			return;
 
-		RecoTool.setting.setCurrentTime(new Date(this.startTime.getTimeInMillis()));
-
 		this.prepareEvaluation(true);
 
 		// Start evaluation countdown
@@ -532,12 +560,11 @@ public class RecoTool {
 			public void run() {
 
 				setting.setCurrentTime(new Date(setting.getCurrentTime().getTime() + 1000));
-
 				firePropertyChange(PROPERTY_EVALUATION_DURATION, null,
 						Duration.ofMillis(RecoTool.setting.getTimeToDeparture()));
 
-				if (delayDuration.toMinutes() > 0 && !delayPromptSent
-						&& delayPromptTimer.toMillis() <= (evaluationDuration.toMillis() - setting.getTimeToDeparture())) {
+				if (delayDuration.toMinutes() > 0 && !delayPromptSent && delayPromptTimer
+						.toMillis() <= (evaluationDuration.toMillis() - setting.getTimeToDeparture())) {
 					SystemPrompt sP = prompts.stream().filter(p -> p.getID() == 18).collect(Collectors.toList()).get(0);
 
 					try {
@@ -550,12 +577,12 @@ public class RecoTool {
 
 				if (setting.getTimeToDeparture() <= 0 && timerRunning || !timerRunning) {
 					evaluationTimer.cancel();
+					evaluationTimer.purge();
+
 					timerRunning = false;
 					evaluationTimer = new Timer();
 					return;
 				}
-
-				timerRunning = true;
 			}
 		}, 0, 1000);
 
@@ -582,10 +609,12 @@ public class RecoTool {
 	public void prepareEvaluation(boolean generateRecommendations)
 			throws MqttPersistenceException, MqttException, JsonProcessingException {
 
+		RecoTool.setting.setCurrentTime(new Date(this.startTime.getTimeInMillis()));
 		RecoTool.setting.setTrafficJunction(this.startTrafficJunction);
 
 		this.assignTrafficJunctionToRandomItems();
 
+		this.setNewEvaluation(true);
 		this.delayPromptSent = false;
 
 		// send start position and simulated start time to CAVE subscriber
@@ -641,32 +670,53 @@ public class RecoTool {
 			this.evaluationTimer = new Timer();
 		}
 
-		this.recommender.setMode(Recommender.PROPERTY_ABIDANCE_MODE);
-		this.switchedRecommendationMode(null, Recommender.PROPERTY_ABIDANCE_MODE);
-
 		// Set evaluation duration
 		Date time = new Date(RecoTool.setting.getCurrentTime().getTime() + this.evaluationDuration.toMillis());
 		RecoTool.setting.withEstimatedDepartureTime(time).withCurrentDepartureTime(time);
+		this.stopNavigation();
 
 		// Calculate recommendation scores and send them via MQTT
-		if (generateRecommendations)
+		if (generateRecommendations) {
+			this.recommender.resetRecommendations();
 			this.generateRecommendations();
+		}
+
+		this.updateBySetting(user);
 
 		this.firePropertyChange(PROPERTY_EVALUATION_PREPARED, null, null);
 	}
 
 	public void stopEvaluation(boolean clearSetting) {
-		this.timerRunning = false;
 
+		if (this.evaluationTimer != null) {
+			this.evaluationTimer.cancel();
+			this.evaluationTimer.purge();
+			this.evaluationTimer = new Timer();
+			this.timerRunning = false;
+		}
+
+		this.recommender.withTimerRunning(false);
 		this.withNavigationDestination(null).withCurrentItem(null);
 
-		RecoTool.setting.setEstimatedDepartureTime(null);
-		this.recommender.withTimerRunning(false).resetRecommendations();
+		RecoTool.setting.setCurrentTime(this.getStartTime().getTime());
 
-		if (clearSetting)
-			RecoTool.setting.getUsedItem().clear();
+		// Save used items
+		if (RecoTool.setting.getUsedItem().size() > 0) {
+			String filename = "used-items-"
+					+ this.getResultTracker().getNumOfAccuracyEvaluationsOfUser(this.getCurrentUser(), "used-items")
+					+ ".csv";
 
-		this.firePropertyChange(PROPERTY_RECOMMENDATIONS, null, this.recommender.getRecommendations());
+			filename = this.getCurrentUser().getId() + "-" + filename;
+			LinkedHashMap<Item, Setting> list = RecoTool.setting.getUsedItem();
+
+			this.resultTracker.writeItemMapToCSV(list, filename);
+
+			if (clearSetting)
+				RecoTool.setting.getUsedItem().clear();
+		}
+
+		this.firePropertyChange(PROPERTY_RECOMMENDATIONS, null,
+				this.recommender.updateBySetting(this.user, RecoTool.setting));
 	}
 
 	public boolean getEvaluationRunning() {
@@ -716,13 +766,27 @@ public class RecoTool {
 		}
 	}
 
+	/**
+	 * Cancel current navigation
+	 * 
+	 * @throws MqttPersistenceException
+	 * @throws MqttException
+	 * @throws JSONException
+	 * @throws JsonProcessingException
+	 */
 	public void cancelNavigation()
 			throws MqttPersistenceException, MqttException, JSONException, JsonProcessingException {
 
 		SystemPrompt sP = this.prompts.stream().filter(p -> p.getID() == 15).collect(Collectors.toList()).get(0);
 		sP = this.replacePlaceholders(sP);
 
+		this.firePropertyChange(RecoTool.PROPERTY_NAVIGATION_FINISHED, this.getNavigationDestination(), null);
+
 		this.setNavigationDestination(null);
+
+		// Send commands to clients
+		if (!this.getMQTTClient().isConnected())
+			return;
 
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.setSerializationInclusion(Include.NON_NULL);
@@ -737,9 +801,19 @@ public class RecoTool {
 		LOG.info("Navigation canceled");
 	}
 
+	/**
+	 * Stop current Navigation
+	 * 
+	 * @throws MqttPersistenceException
+	 * @throws MqttException
+	 */
 	public void stopNavigation() throws MqttPersistenceException, MqttException {
 
+		this.firePropertyChange(RecoTool.PROPERTY_NAVIGATION_FINISHED, this.getNavigationDestination(), null);
 		this.setNavigationDestination(null);
+
+		if (!this.getMQTTClient().isConnected())
+			return;
 
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.setSerializationInclusion(Include.NON_NULL);
@@ -753,6 +827,9 @@ public class RecoTool {
 		LOG.info("Navigation stopped");
 	}
 
+	/**
+	 * Requested route calculated notification
+	 */
 	public static final String PROPERTY_ROUTE_CALCULATED = "routeCalculated";
 
 	public void calculatedRoute(JSONObject jsonObj) {
@@ -792,6 +869,11 @@ public class RecoTool {
 		}
 	}
 
+	/**
+	 * Called after a navigation is finished. Automatically marks current
+	 * destination as used.
+	 */
+
 	public static final String PROPERTY_NAVIGATION_FINISHED = "navigationFinished";
 
 	public void finishedNavigation(JSONObject jsonObj) {
@@ -821,33 +903,41 @@ public class RecoTool {
 
 				this.sendSystemPrompt(sP1, sP2);
 
-				RecoTool.setting.setCurrentDepartureTime(new Date(this.startTime.getTimeInMillis()));
-
+				this.stopEvaluation(false);
 			} else if (this.recommender.getMode().equals(Recommender.PROPERTY_ABIDANCE_MODE)) {
 
 				SystemPrompt sP = null;
 
+				sP = this.prompts.stream().filter(p -> p.getID() == 16).collect(Collectors.toList()).get(0);
+				this.sendSystemPrompt(this.replacePlaceholders(sP));
+
 				if (item.getId() > 0) {
 					// Send information for further recommendations
 					sP = this.prompts.stream().filter(p -> p.getID() == 8).collect(Collectors.toList()).get(0);
-				} else {
-					sP = this.prompts.stream().filter(p -> p.getID() == 16).collect(Collectors.toList()).get(0);
+					this.sendSystemPrompt(this.replacePlaceholders(sP));
+
+					System.out.println(this.replacePlaceholders(sP).getMessage());
 				}
 
-				this.sendSystemPrompt(this.replacePlaceholders(sP));
 				this.itemUsed();
 			}
-
-			LOG.info("Navigation finished");
 		} catch (IOException | MqttException e) {
 			e.printStackTrace();
 		}
 
-		this.firePropertyChange(PROPERTY_NAVIGATION_FINISHED, null, item);
-
+		// Set current navigation Destination to null, if reached item is equal to
+		// current navigationDestination
 		if (this.navigationDestination != null && item != null && this.navigationDestination.getId() == item.getId())
 			this.setNavigationDestination(null);
+
+		this.firePropertyChange(PROPERTY_NAVIGATION_FINISHED, null, item);
 	}
+
+	/**
+	 * Called to update current user Position
+	 * 
+	 * @param jsonObj
+	 */
 
 	public void updateUserPosition(JSONObject jsonObj) {
 
@@ -871,7 +961,10 @@ public class RecoTool {
 		}
 	}
 
-	// ===================================================
+	/**
+	 * Called to mark a selected item as used. Simulated time is updated an updated
+	 * recommendations are sent to dataglasses.
+	 */
 
 	public static final String PROPERTY_ITEM_USAGE_DONE = "itemUsageDone";
 
@@ -882,8 +975,6 @@ public class RecoTool {
 
 		Item usedItem = this.getCurrentItem();
 
-		this.firePropertyChange(PROPERTY_ITEM_USAGE_DONE, null, usedItem);
-
 		this.getSetting().withUsedItem(usedItem);
 		this.withCurrentItem(null);
 
@@ -893,26 +984,31 @@ public class RecoTool {
 
 		Date timeOfUsage = null;
 
-		if (maxNumOfItemsToUse > 0 && setting.getUsedItem().size() <= maxNumOfItemsToUse) {
-			timeOfUsage = new Date(RecoTool.setting.getCurrentTime().getTime() + this.getOptimizedItemUsageDuration());
+		// Check whether optimized usage duration is used or estimated average usage
+		// duration
+		if (numOfItemsToUse > 0) {
+			long additionalTime = this.getOptimizedItemUsageDuration();
+			timeOfUsage = new Date(RecoTool.setting.getCurrentTime().getTime() + additionalTime);
 		} else {
 			timeOfUsage = new Date(
 					RecoTool.setting.getCurrentTime().getTime() + usedItem.getEstimatedUsageDuration().toMillis());
 		}
 
 		RecoTool.setting.setCurrentTime(timeOfUsage);
+		this.setNewEvaluation(false);
+
+		this.firePropertyChange(PROPERTY_ITEM_USAGE_DONE, null, usedItem);
 
 		this.updateBySetting(this.user);
 
 		if (!this.getMQTTClient().getClient().isConnected())
 			return;
 
-		// update data glasses with new recommendations
-
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			mapper.setSerializationInclusion(Include.NON_NULL);
 
+			// update data glasses with new recommendations
 			JSONObject json = new JSONObject();
 			json.put("action", RecoToolMqttServer.MQTT_CMD_RECOMMENDATIONS);
 
@@ -925,17 +1021,19 @@ public class RecoTool {
 			json.put("items", arr);
 			this.getMQTTClient().send(json.toString(), RecoToolMqttServer.PROPERTY_DATA_GLASSES_TOPIC);
 
-			int timePassed = (int) (this.evaluationDuration.toMillis() - RecoTool.setting.getTimeToDeparture());
-			this.startTime.add(Calendar.MILLISECOND, timePassed);
-
 			// update simulated time in CAVE
 			json = new JSONObject();
 			json.put("action", RecoToolMqttServer.MQTT_CMD_SET_SIMULATED_TIME);
-			json.put("value", new JSONObject().put("hour", this.startTime.get(Calendar.HOUR_OF_DAY)).put("minute",
-					this.startTime.get(Calendar.MINUTE)));
+
+			// TODO: Timezone
+			json.put("value",
+					new JSONObject()
+							.put("hour", 1 + (RecoTool.setting.getCurrentTime().getTime() / (60 * 60 * 1000)) % 24)
+							.put("minute", (RecoTool.setting.getCurrentTime().getTime() / (60 * 1000)) % 60));
+
 			this.getMQTTClient().send(json.toString(), RecoToolMqttServer.PROPERTY_CAVE_TOPIC);
 
-			// Send information for further recommendations to data glasses
+			// Send system prompt for further instructions to data glasses
 			if (this.recommender.getMode().equals(Recommender.PROPERTY_ABIDANCE_MODE)) {
 				SystemPrompt sP = this.prompts.stream().filter(p -> p.getID() == 6).collect(Collectors.toList()).get(0);
 				this.sendSystemPrompt(sP);
@@ -953,13 +1051,18 @@ public class RecoTool {
 	public void switchedRecommendationMode(String oldValue, String value)
 			throws MqttPersistenceException, MqttException {
 
-		this.firePropertyChange(PROPERTY_SWITCH_MODE, oldValue, value);
-
 		LOG.info("Recommendation mode changed to " + value);
 
 		if (Recommender.PROPERTY_ABIDANCE_MODE.compareTo(value) == 0) {
-			this.setNavigationDestination(null);
+			try {
+				this.cancelNavigation();
+				this.updateBySetting(user);
+			} catch (JSONException | JsonProcessingException e) {
+				e.printStackTrace();
+			}
 		}
+
+		this.firePropertyChange(PROPERTY_SWITCH_MODE, oldValue, value);
 
 		if (!this.server.getClient().isConnected())
 			return;
@@ -977,6 +1080,12 @@ public class RecoTool {
 				// Temporary item with Geocoordinates
 				Item tmpItem = new Item().withName(this.getNextConnectionPositionIdentifier())
 						.withGeoposition(this.endPosition);
+
+				AttributeDAO ad = new AttributeDAO();
+				Attribute attribute = ad.findById(74);
+
+				tmpItem.withDomain(attribute);
+
 				this.setNavigationDestination(tmpItem);
 
 				json.put("item", new JSONObject(mapper.writeValueAsString(tmpItem)));
@@ -1046,7 +1155,16 @@ public class RecoTool {
 
 		if (this.getCurrentItem() != null) {
 			msg = msg.replace("%item%", this.getCurrentItem().getName());
-			msg = msg.replace("%min%", this.getCurrentItem().getEstimatedUsageDuration().toMinutes() + "");
+
+			long min = 0;
+
+			if (this.getNumOfItemsToUse() == 0) {
+				min = this.getCurrentItem().getEstimatedUsageDuration().toMinutes();
+			} else {
+				min = Duration.ofMillis(this.getOptimizedItemUsageDuration()).toMinutes();
+			}
+
+			msg = msg.replace("%min%", min + "");
 		}
 
 		if (this.getCurrentUser() != null && this.getCurrentUser().getId() > 0) {
@@ -1054,20 +1172,37 @@ public class RecoTool {
 			msg = msg.replace("%lastname%", this.getCurrentUser().getLastname());
 		}
 
-		if (this.getStartTrafficJunction() != null) {
+		if (this.getStartTrafficJunction() != null && this.getStartTrafficJunction().getName() != null) {
 			msg = msg.replace("%startTrafficJunction%", this.getStartTrafficJunction().getName());
 		}
 
-		if (this.getEndTrafficJunction() != null) {
+		if (this.getEndTrafficJunction() != null && this.getEndTrafficJunction().getName() != null) {
 			msg = msg.replace("%endTrafficJunction%", this.getEndTrafficJunction().getName());
 		}
 
-		if (this.getNavigationDestination() != null) {
+		if (this.getNavigationDestination() != null && this.getNavigationDestination().getName() != null) {
 			msg = msg.replace("%navigationDestination%", this.getNavigationDestination().getName());
+
+			long min = 0;
+
+			if (this.getNumOfItemsToUse() == 0) {
+				min = this.getCurrentItem().getEstimatedUsageDuration().toMinutes();
+			} else {
+				min = Duration.ofMillis(this.getOptimizedItemUsageDuration()).toMinutes();
+			}
+
+			msg = msg.replace("%min%", min + "");
 		}
 
 		if (this.getNextConnectionPositionIdentifier() != null) {
 			msg = msg.replace("%nextConnectionPosition%", this.getNextConnectionPositionIdentifier());
+		}
+
+		if (this.getNextConnectionPositionIdentifier() != null) {
+			DateFormat df = new SimpleDateFormat("HH:mm");
+			df.setTimeZone(TimeZone.getDefault());
+
+			msg = msg.replace("%currentTime%", df.format(RecoTool.setting.getCurrentTime()));
 		}
 
 		msg = msg.replace("%delayDuration%", this.getDelayDuration().toMinutes() + "");
@@ -1276,14 +1411,29 @@ public class RecoTool {
 		return this;
 	}
 
-	// ===================================================
+	/**
+	 * Calculate usage duration for items. Used when numOfItemsToUse > 0.
+	 * 
+	 * @return
+	 */
 
 	public long getOptimizedItemUsageDuration() {
 		long tUsage = 0;
 
-		if (RecoTool.setting.getUsedItem().size() < this.maxNumOfItemsToUse) {
-			tUsage = setting.getTimeToDeparture() / (this.maxNumOfItemsToUse);
-			tUsage -= 200;
+		if (this.newEvaluation || RecoTool.setting.getUsedItem().size() % this.numOfItemsToUse != 0) {
+
+			long evaluationTime = 300000;
+
+			if (this.delayDuration.toMillis() == 0 || this.delayDuration.toMillis() > 0 && this.delayPromptSent) {
+				evaluationTime = RecoTool.setting.getTimeToDeparture();
+			} else {
+				evaluationTime = this.evaluationDuration.toMillis();
+			}
+
+			tUsage = (long) ((evaluationTime - this.recommender.getRequiredTimeToReachDestination(RecoTool.setting)
+					- 110000)
+					/ (this.numOfItemsToUse - (RecoTool.setting.getUsedItem().size() % this.getNumOfItemsToUse())));
+
 		} else {
 			tUsage = setting.getTimeToDeparture();
 
@@ -1294,7 +1444,7 @@ public class RecoTool {
 			else
 				distance = setting.getGeoposition().euclideanDistance(this.endPosition);
 
-			tUsage -= 1.1 * (distance / this.user.getMinWalkingSpeed() * 3600 * 1000);
+			tUsage -= distance * 3600 * 1000 / this.user.getMinWalkingSpeed();
 		}
 
 		return tUsage;
@@ -1347,16 +1497,16 @@ public class RecoTool {
 
 	// ===================================================
 
-	public int getMaxNumOfItemsToUse() {
-		return this.maxNumOfItemsToUse;
+	public int getNumOfItemsToUse() {
+		return this.numOfItemsToUse;
 	}
 
-	public void setMaxNumOfItemsToUse(int value) {
-		this.maxNumOfItemsToUse = value;
+	public void setNumOfItemsToUse(int value) {
+		this.numOfItemsToUse = value;
 	}
 
-	public RecoTool withMaxNumOfItemsToUse(int value) {
-		this.setMaxNumOfItemsToUse(value);
+	public RecoTool withNumOfItemsToUse(int value) {
+		this.setNumOfItemsToUse(value);
 		return this;
 	}
 
@@ -1548,6 +1698,21 @@ public class RecoTool {
 
 	public RecoTool withHideAll(boolean value) {
 		this.setHideAll(value);
+		return this;
+	}
+
+	// =========================================
+
+	public boolean getNewEvaluation() {
+		return this.newEvaluation;
+	}
+
+	public void setNewEvaluation(boolean value) {
+		this.newEvaluation = value;
+	}
+
+	public RecoTool withNewEvaluation(boolean value) {
+		this.setNewEvaluation(value);
 		return this;
 	}
 

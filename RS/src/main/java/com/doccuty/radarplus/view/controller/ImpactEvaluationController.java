@@ -1,6 +1,7 @@
 package com.doccuty.radarplus.view.controller;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
@@ -43,12 +45,14 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 
-public class AccuracyEvaluationController implements Initializable {
+public class ImpactEvaluationController implements Initializable {
 
-	private final static Logger LOG = Logger.getLogger(AccuracyEvaluationController.class);
+	private final static Logger LOG = Logger.getLogger(ImpactEvaluationController.class);
 
-	private final static String FILE_SUFFIX = "accurarcy";
+	private final static String FILE_SUFFIX = "impact";
 	private final static float FIT_HEIGHT = 15;
+
+	private final static float MAP_WIDTH_IN_METERS = 266;
 
 	// Evaluation screen
 
@@ -59,7 +63,13 @@ public class AccuracyEvaluationController implements Initializable {
 	HBox hbox_currentSelectedItemView;
 
 	@FXML
+	HBox hbox_usedItemList;
+
+	@FXML
 	Label lbl_timeToDepature;
+
+	@FXML
+	Button btn_applyButton;
 
 	@FXML
 	ImageView iv_itemImage;
@@ -113,7 +123,6 @@ public class AccuracyEvaluationController implements Initializable {
 	Image selectedItemImage;
 	Image userImage;
 
-	double scale;
 	double offsetX;
 	double offsetY;
 
@@ -139,6 +148,7 @@ public class AccuracyEvaluationController implements Initializable {
 		this.hbox_currentSelectedItemView.managedProperty().bind(this.hbox_currentSelectedItemView.visibleProperty());
 		this.hbox_currentSelectedItemView.setVisible(false);
 
+		this.hbox_usedItemList.managedProperty().bind(this.hbox_usedItemList.visibleProperty());
 		this.tc_itemName.setCellValueFactory(
 				new Callback<TableColumn.CellDataFeatures<Map.Entry<Item, Double>, String>, ObservableValue<String>>() {
 					@Override
@@ -160,16 +170,16 @@ public class AccuracyEvaluationController implements Initializable {
 		this.tv_items.setItems(itemList);
 		this.lv_usedItems.setItems(this.usedItems);
 
-		// Calculate pixel per meter
-		scale = this.iv_map.getFitWidth() / 266.0;
+		this.iv_map.fitWidthProperty().bind(p_map.widthProperty());
+		// this.iv_map.fitHeightProperty().bind(p_map.heightProperty());
 	}
 
 	public void init() {
 		if (this.app == null)
 			return;
 
-		if (this.app.getRecommender().getOriginalRecommendations().size() == 0) {
-			this.app.generateRecommendations();
+		if (this.app.getEvaluationRunning()) {
+			this.app.stopEvaluation(false);
 		}
 
 		// Add optional handler for realtime user position updates
@@ -180,17 +190,13 @@ public class AccuracyEvaluationController implements Initializable {
 		// init time
 		this.app.getSetting().withGeoposition(this.app.getStartPosition())
 				.withNextDestination(this.app.getEndPosition())
-				.withCurrentDepartureTime(new Date(
-						this.app.getStartTime().getTimeInMillis() + this.app.getEvaluationDuration().toMillis()))
-				.withEstimatedDepartureTime(this.app.getSetting().getCurrentDepartureTime());
+				.withCurrentDepartureTime(new Date(this.app.getStartTime().getTimeInMillis()
+						+ this.app.getEvaluationDuration().toMillis() + this.app.getDelayDuration().toMillis()))
+				.withEstimatedDepartureTime(new Date(this.app.getStartTime().getTimeInMillis()
+						+ this.app.getEvaluationDuration().toMillis() + this.app.getDelayDuration().toMillis()))
+				.withCurrentTime(this.app.getStartTime().getTime());
 
 		this.lbl_timeToDepature.setText(Duration.ofMillis(this.app.getSetting().getTimeToDeparture()).toMinutes() + "");
-
-		LinkedHashMap<Item, Double> map = this.app.getRecommender().getContextBasedPostFilter().filterBySetting(
-				this.app.getCurrentUser(), this.app.getSetting(),
-				this.app.getRecommender().getOriginalRecommendations());
-
-		this.addImageViews(map);
 
 		// User symbol
 		this.userSymbol = new ImageView();
@@ -201,14 +207,26 @@ public class AccuracyEvaluationController implements Initializable {
 		this.userSymbol.setPreserveRatio(true);
 		this.userSymbol.setSmooth(true);
 
-		this.userSymbol.setX(this.iv_map.getFitWidth() - this.app.getSetting().getGeoposition().getLatitude() * scale
-				- this.offsetX);
-		this.userSymbol.setY(this.app.getSetting().getGeoposition().getLongitude() * scale - this.offsetY * scale);
+		this.userSymbol.xProperty()
+				.bind(p_map.widthProperty().subtract(p_map.widthProperty().divide(MAP_WIDTH_IN_METERS)
+						.multiply(this.app.getSetting().getGeoposition().getLatitude() + this.offsetX)));
 
-		imageViewList.add(this.userSymbol);
+		this.userSymbol.yProperty()
+				.bind(p_map.widthProperty()
+						.multiply(this.app.getSetting().getGeoposition().getLongitude() - this.offsetY)
+						.divide(MAP_WIDTH_IN_METERS));
+		this.p_map.getChildren().add(this.userSymbol);
 
-		// Add all images to map
-		p_map.getChildren().addAll(imageViewList);
+		LinkedHashMap<Item, Double> map = null;
+
+		if (this.app.getNumOfItemsToUse() == 0) {
+			map = this.app.getRecommender().getContextBasedPostFilter().filterBySetting(this.app.getCurrentUser(),
+					this.app.getSetting(), this.app.getRecommender().getOriginalRecommendations());
+		} else {
+			map = this.app.getRecommender().getOriginalRecommendations();
+		}
+
+		this.addImageViews(map);
 	}
 
 	@FXML
@@ -243,22 +261,29 @@ public class AccuracyEvaluationController implements Initializable {
 			i++;
 		}
 
+		if (this.tv_items.getSelectionModel().getSelectedIndex() == this.itemList.size() - 1) {
+			this.btn_applyButton.setDisable(false);
+		}
 	}
 
 	@FXML
 	public void applySelection(ActionEvent ev) {
 
-		Item item = this.tv_items.getSelectionModel().getSelectedItem().getKey();
+		if (this.tv_items.getSelectionModel().getSelectedItem() == null)
+			return;
 
+		Item item = this.tv_items.getSelectionModel().getSelectedItem().getKey();
 		this.usedItems.add(item);
 
-		Date currentTime = null;
+		// Add new label to used item overview
+		this.addItemToUsedItemList(item);
 
-		if (this.app.getMaxNumOfItemsToUse() > 0 && this.usedItems.size() <= this.app.getMaxNumOfItemsToUse()) {
+		// Update time and user position
+		Date currentTime = null;
+		if (this.app.getNumOfItemsToUse() > 0 && this.usedItems.size() <= this.app.getNumOfItemsToUse()) {
 			currentTime = new Date(
 					this.app.getSetting().getCurrentTime().getTime() + this.getOptimizedItemUsageDuration());
 		} else {
-
 			long walkingTime = ((long) item.getGeoposition().euclideanDistance(this.app.getSetting().getGeoposition()))
 					/ this.app.getCurrentUser().getMinWalkingSpeed() * 3600;
 
@@ -268,22 +293,19 @@ public class AccuracyEvaluationController implements Initializable {
 
 		this.app.getSetting().withGeoposition(item.getGeoposition()).setCurrentTime(currentTime);
 
-		// Update user position on map
-		if (!this.app.getRealtimeUserPositionUpdateAccuracyEvaluationMap()) {
-			this.updateUserPosition(this.app.getSetting().getGeoposition());
-		}
-
 		this.lbl_timeToDepature.setText(Duration.ofMillis(this.app.getSetting().getTimeToDeparture()).toMinutes() + "");
 
 		// Update item list
-		this.itemList.clear();
+		LinkedHashMap<Item, Double> map = null;
 
-		LinkedHashMap<Item, Double> map = this.app.updateBySetting(this.app.getCurrentUser());
+		if (this.app.getMaxNumOfItems() == 0)
+			map = this.app.updateBySetting(this.app.getCurrentUser());
+		else
+			map = this.app.getRecommender().getOriginalRecommendations();
 
 		this.addImageViews(map);
 
 		this.selectItem(null);
-
 		if (this.itemList.size() == 0 || this.app.getSetting().getTimeToDeparture() <= 0) {
 
 			String s = this.lbl_infoText.getText().replace("%firstname%", this.app.getCurrentUser().getFirstname());
@@ -293,6 +315,11 @@ public class AccuracyEvaluationController implements Initializable {
 
 			this.vbox_info.setVisible(true);
 			this.vbox_evaluation.setVisible(false);
+		}
+
+		// Update user position on map
+		if (!this.app.getRealtimeUserPositionUpdateAccuracyEvaluationMap()) {
+			this.updateUserPosition(this.app.getSetting().getGeoposition());
 		}
 	}
 
@@ -310,11 +337,28 @@ public class AccuracyEvaluationController implements Initializable {
 	}
 
 	public void updateUserPosition(Geoposition value) {
-		this.userSymbol.setX(this.iv_map.getFitWidth() - value.getLatitude() * scale - this.offsetX * scale);
-		this.userSymbol.setY(value.getLongitude() * scale - this.offsetY * scale);
+		this.userSymbol.xProperty()
+				.bind(p_map.widthProperty().subtract(p_map.widthProperty().divide(MAP_WIDTH_IN_METERS)
+						.multiply(this.app.getSetting().getGeoposition().getLatitude() + this.offsetX)));
+
+		this.userSymbol.yProperty()
+				.bind(p_map.widthProperty()
+						.multiply(this.app.getSetting().getGeoposition().getLongitude() - this.offsetY)
+						.divide(MAP_WIDTH_IN_METERS));
+
+		this.userSymbol.toFront();
 	}
 
+	/**
+	 * Add ImageViews for all items in itemMap.
+	 * 
+	 * @param itemMap
+	 */
 	private void addImageViews(LinkedHashMap<Item, Double> itemMap) {
+		this.itemList.clear();
+
+		p_map.getChildren().removeAll(imageViewList);
+		imageViewList.clear();
 
 		// Add Item Symbol
 		for (Iterator<Entry<Item, Double>> it = itemMap.entrySet().iterator(); it.hasNext();) {
@@ -330,21 +374,35 @@ public class AccuracyEvaluationController implements Initializable {
 
 			ImageView iv_item = new ImageView();
 			iv_item.setImage(itemSymbol);
-			iv_item.setFitHeight(FIT_HEIGHT);
 
-			iv_item.setPreserveRatio(true);
-			iv_item.setSmooth(true);
+			imageViewList.add(this.prepareImageView(iv_item, e));
+		}
 
-			iv_item.setX(this.iv_map.getFitWidth() - e.getKey().getGeoposition().getLatitude() * scale
-					- this.offsetX * scale);
-			iv_item.setY(e.getKey().getGeoposition().getLongitude() * scale - this.offsetY * scale);
-			iv_item.getStyleClass().add("clickable");
+		p_map.getChildren().addAll(imageViewList);
+	}
 
+	private ImageView prepareImageView(ImageView iv_item, Entry<Item, Double> e) {
+		iv_item.setFitHeight(FIT_HEIGHT);
+
+		iv_item.setPreserveRatio(true);
+		iv_item.setSmooth(true);
+
+		iv_item.xProperty().bind(p_map.widthProperty().subtract(p_map.widthProperty().divide(MAP_WIDTH_IN_METERS)
+				.multiply(e.getKey().getGeoposition().getLatitude() + this.offsetX)));
+
+		iv_item.yProperty().bind(p_map.widthProperty()
+				.multiply(e.getKey().getGeoposition().getLongitude() - this.offsetY).divide(MAP_WIDTH_IN_METERS));
+
+		iv_item.getStyleClass().add("clickable");
+
+		if (e != null) {
 			iv_item.setOnMouseClicked(new EventHandler<MouseEvent>() {
 				@Override
 				public void handle(MouseEvent t) {
 
 					int idx = itemList.indexOf(e);
+
+					LOG.info(e.getKey().getGeoposition());
 
 					if (idx >= 0) {
 						tv_items.getSelectionModel().select(idx);
@@ -353,22 +411,71 @@ public class AccuracyEvaluationController implements Initializable {
 					}
 				}
 			});
-
-			imageViewList.add(iv_item);
 		}
+
+		return iv_item;
 	}
 
 	public long getOptimizedItemUsageDuration() {
 		long tUsage = 0;
 
-		if (this.usedItems.size() < this.app.getMaxNumOfItemsToUse()) {
-			tUsage = this.app.getSetting().getTimeToDeparture() / (this.app.getMaxNumOfItemsToUse());
+		if (this.usedItems.size() < this.app.getNumOfItemsToUse()) {
+			tUsage = this.app.getSetting().getTimeToDeparture() / (this.app.getNumOfItemsToUse());
 			tUsage -= 200;
 		} else {
 			tUsage = this.app.getSetting().getTimeToDeparture();
 		}
 
 		return tUsage;
+	}
+
+	private void addItemToUsedItemList(Item item) {
+		HBox hbox_usedItem = new HBox();
+		hbox_usedItem.setSpacing(10);
+
+		Label lbl_usedItem = new Label(item.getName());
+
+		ImageView iv_removeItem = new ImageView();
+		iv_removeItem.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent event) {
+				removeItemFromUsedItemList(item, hbox_usedItem);
+			}
+
+		});
+
+		try {
+			Image img = new Image(getClass().getClassLoader().getResource("icons/icons8-delete.png").openStream(), 16,
+					16, true, false);
+			iv_removeItem.setImage(img);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		hbox_usedItem.getChildren().addAll(lbl_usedItem, iv_removeItem);
+		this.hbox_usedItemList.getChildren().add(hbox_usedItem);
+
+		this.hbox_usedItemList.setVisible(true);
+	}
+
+	private void removeItemFromUsedItemList(Item item, HBox hbox_usedItem) {
+		hbox_usedItemList.getChildren().remove(hbox_usedItem);
+		usedItems.remove(item);
+
+		// Reset usage time
+		long time = this.app.getSetting().getCurrentTime().getTime();
+
+		if (this.app.getNumOfItemsToUse() == 0)
+			time -= item.getEstimatedUsageDuration().toMillis();
+		else
+			time -= this.app.getOptimizedItemUsageDuration();
+
+		this.app.getSetting().setCurrentTime(new Date(time));
+
+		if (usedItems.size() == 0) {
+			hbox_usedItemList.setVisible(false);
+		}
 	}
 
 	// ===============================================
@@ -381,14 +488,14 @@ public class AccuracyEvaluationController implements Initializable {
 		this.app = value;
 	}
 
-	public AccuracyEvaluationController withApp(RecoTool value) {
+	public ImpactEvaluationController withApp(RecoTool value) {
 		this.setApp(value);
 		return this;
 	}
 
 	// ===============================================
 
-	public AccuracyEvaluationController withParent(RootController value) {
+	public ImpactEvaluationController withParent(RootController value) {
 		return this;
 	}
 
@@ -402,7 +509,7 @@ public class AccuracyEvaluationController implements Initializable {
 		this.stage = value;
 	}
 
-	public AccuracyEvaluationController withStage(Stage value) {
+	public ImpactEvaluationController withStage(Stage value) {
 		this.setStage(value);
 		return this;
 	}

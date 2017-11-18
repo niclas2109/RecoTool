@@ -36,22 +36,22 @@
 	{
 		"id": 8,
 		"mode": "system-prompt-info",
-		"message": "Versuchsleiter: An %item% verbringst du nun %min% min."
+		"message": "Versuchsleiter: An %navigationDestination% verbringst du nun %min% min."
 	},
 	{
 		"id": 9,
-		"mode": "system-prompt-info",
+		"mode": "system-prompt-efficiency",
 		"message": "Dein Zug fährt in ca. %duration% min ab. Die Navigation zum Gleis wird gestartet!"
 	},
 	{
 		"id": 10,
-		"mode": "system-prompt-info",
+		"mode": "system-prompt-efficiency",
 		"message": "Du hast das Gleis für deinen nächsten Anschluss erreicht. Der Zug steht bereits am Gleis!"
 	},
 	{
 		"id": 11,
 		"mode": "system-prompt-info",
-		"message": "Dieser Durchlauf des Versuchs ist nun beendet. Wie es weitergeht, erklärt Ihnen der Versuchleiter!"
+		"message": "Versuchsleiter: Dieser Durchlauf des Versuchs ist nun beendet. Setzen Sie die Datenbrille nun ab und wenden Sie sich an den Versuchsleiter!"
 	},
 	{
 		"id": 12,
@@ -87,5 +87,15 @@
 		"id": 18,
 		"mode": "system-prompt-error",
 		"message": "Dein Anschluss hat eine Verspätung von ca. %delayDuration% min."
+	},
+	{
+		"id": 19,
+		"mode": "system-prompt-info",
+		"message": "Es ist %currentTime%."
+	},
+	{
+		"id": 19,
+		"mode": "system-prompt-info",
+		"message": "Um neue Empfehlungen zu sehen, musst du die Navigation stoppen!."
 	}
 ]

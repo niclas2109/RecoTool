@@ -33,14 +33,14 @@ public class SerendipityMechanism {
 		LinkedHashMap<Item, Double> sim = this.recommender.getSimilarityMap().get(itemMap.keySet().iterator().next());
 
 		// Number of serendipity items
-		int k = (int) (this.recommender.getStudyApp().getMaxNumOfItems() / 0.2);
+		int k = (int) (this.recommender.getApp().getMaxNumOfItems() / 0.2);
 
 		for (Iterator<Entry<Item, Double>> it = sim.entrySet().iterator(); it.hasNext();) {
 			Entry<Item, Double> e = it.next();
 			Item item = e.getKey();
 
 			if (item.getIsTrainingItem() || this.recommender.getRecommendations().get(item) == null
-					|| this.recommender.getStudyApp().getSetting().getUsedItem().containsKey(item))
+					|| this.recommender.getApp().getSetting().getUsedItem().containsKey(item))
 				continue;
 
 			kFurthestNeighbors.add(item);

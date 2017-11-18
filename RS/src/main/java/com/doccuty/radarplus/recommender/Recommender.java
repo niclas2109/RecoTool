@@ -135,8 +135,6 @@ public class Recommender {
 					timerRunning = false;
 					cancel();
 				}
-
-				timerRunning = true;
 			}
 		}, 0, 15000);
 
@@ -190,22 +188,44 @@ public class Recommender {
 
 	public String checkMode(Setting setting) throws MqttPersistenceException, MqttException {
 
-		if (this.itemMap.size() == 0 && this.mode.compareTo(PROPERTY_ABIDANCE_MODE) == 0) {
+		if (this.itemMap.size() == 0 && this.mode.compareTo(PROPERTY_ABIDANCE_MODE) == 0
+				&& this.app.getNumOfItemsToUse() == 0) {
 			String oldValue = this.mode;
 			this.mode = PROPERTY_EFFICIENCY_MODE;
 			this.app.switchedRecommendationMode(oldValue, this.mode);
 			return this.mode;
 		}
 
+		double requiredTimeToReachDestination = this.getRequiredTimeToReachDestination(setting);
+
+		// change mode
+		if (this.mode.compareTo(PROPERTY_ABIDANCE_MODE) == 0
+				&& (setting.getTimeToDeparture() < requiredTimeToReachDestination)) {
+			this.mode = PROPERTY_EFFICIENCY_MODE;
+			this.app.switchedRecommendationMode(PROPERTY_ABIDANCE_MODE, this.mode);
+		} else if (setting.getTimeToDeparture() > requiredTimeToReachDestination
+				&& this.mode.compareTo(PROPERTY_EFFICIENCY_MODE) == 0) {
+			this.mode = PROPERTY_ABIDANCE_MODE;
+			this.app.switchedRecommendationMode(PROPERTY_EFFICIENCY_MODE, this.mode);
+		}
+
+		this.lastModeCheck = new Date().getTime();
+
+		return this.mode;
+	}
+
+	public double getRequiredTimeToReachDestination(Setting setting) {
+
 		// estimated time to reach next destination in [min]
 		double requiredTimeToReachDestination = 0;
 
+		double distance = 0;
 		if (this.app.getUseGeocoordinates())
-			requiredTimeToReachDestination = this.app.getEndPosition().distance(setting.getGeoposition()) * 60
-					/ this.app.getCurrentUser().getMinWalkingSpeed();
+			distance = this.app.getEndPosition().distance(setting.getGeoposition());
 		else
-			requiredTimeToReachDestination = this.app.getEndPosition().euclideanDistance(setting.getGeoposition()) * 60
-					/ this.app.getCurrentUser().getMinWalkingSpeed();
+			distance = this.app.getEndPosition().euclideanDistance(setting.getGeoposition());
+
+		requiredTimeToReachDestination = distance * 60 / this.app.getCurrentUser().getMinWalkingSpeed();
 
 		// add additional buffer [1;5] in [min]
 		if (requiredTimeToReachDestination * 0.1 < 1)
@@ -218,20 +238,7 @@ public class Recommender {
 		// convert to [ms]
 		requiredTimeToReachDestination *= 60000;
 
-		// change mode
-		if (setting.getTimeToDeparture() < requiredTimeToReachDestination
-				&& this.mode.compareTo(PROPERTY_ABIDANCE_MODE) == 0) {
-			this.mode = PROPERTY_EFFICIENCY_MODE;
-			this.app.switchedRecommendationMode(PROPERTY_ABIDANCE_MODE, this.mode);
-		} else if (setting.getTimeToDeparture() > requiredTimeToReachDestination
-				&& this.mode.compareTo(PROPERTY_EFFICIENCY_MODE) == 0) {
-			this.mode = PROPERTY_ABIDANCE_MODE;
-			this.app.switchedRecommendationMode(PROPERTY_EFFICIENCY_MODE, this.mode);
-		}
-
-		this.lastModeCheck = new Date().getTime();
-
-		return this.mode;
+		return requiredTimeToReachDestination;
 	}
 
 	public void resetRecommendations() {
@@ -296,16 +303,16 @@ public class Recommender {
 
 	// ===================================================
 
-	public RecoTool getStudyApp() {
+	public RecoTool getApp() {
 		return this.app;
 	}
 
-	public void setStudyApp(RecoTool value) {
+	public void setApp(RecoTool value) {
 		this.app = value;
 	}
 
-	public Recommender withStudyApp(RecoTool value) {
-		setStudyApp(value);
+	public Recommender withApp(RecoTool value) {
+		setApp(value);
 		return this;
 	}
 

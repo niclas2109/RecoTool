@@ -15,13 +15,10 @@
             <TableView fx:id="tv_user" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onKeyReleased="#setCurrentSelectedUser" onMouseClicked="#setCurrentSelectedUser" VBox.vgrow="ALWAYS">
               <columns>
                 <TableColumn fx:id="tc_firstname" editable="false" maxWidth="1.7976931348623157E308" minWidth="120.0" prefWidth="-1.0" resizable="false" text="%firstname" />
-                <TableColumn fx:id="tc_lastname" editable="false" maxWidth="1.7976931348623157E308" minWidth="150.0" prefWidth="-1.0" resizable="false" text="%lastname" />
-                <TableColumn fx:id="tc_lastUpdated" editable="false" maxWidth="1.7976931348623157E308" minWidth="120.0" prefWidth="-1.0" resizable="false" text="%lastUpdated" />
-                <TableColumn fx:id="tc_createdAt" editable="false" maxWidth="1.7976931348623157E308" minWidth="120.0" prefWidth="-1.0" resizable="false" text="%createdAt" />
+                <TableColumn fx:id="tc_lastname" editable="false" maxWidth="1.7976931348623157E308" minWidth="150.0" prefWidth="-1.0" text="%lastname" />
+                <TableColumn fx:id="tc_lastUpdated" editable="false" maxWidth="1.7976931348623157E308" minWidth="120.0" prefWidth="-1.0" text="%lastUpdated" />
+                <TableColumn fx:id="tc_createdAt" editable="false" maxWidth="1.7976931348623157E308" minWidth="120.0" prefWidth="-1.0" text="%createdAt" />
               </columns>
-               <columnResizePolicy>
-                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-               </columnResizePolicy>
                <VBox.margin>
                   <Insets bottom="20.0" />
                </VBox.margin>

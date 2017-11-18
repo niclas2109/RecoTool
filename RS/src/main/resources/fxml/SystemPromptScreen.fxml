@@ -16,7 +16,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane maxHeight="500.0" maxWidth="-Infinity" prefWidth="470.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.doccuty.radarplus.view.controller.SystemPromptController">
+<AnchorPane maxHeight="500.0" maxWidth="-Infinity" prefWidth="550.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.doccuty.radarplus.view.controller.SystemPromptController">
    <children>
       <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="5.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
@@ -60,6 +60,7 @@
                            </toggleGroup>
                         </RadioButton>
                         <RadioButton fx:id="rbtn_infoPrompt" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#changePromptType" selected="true" text="%infoAlert" toggleGroup="$tgroup_prompt" HBox.hgrow="ALWAYS" />
+                        <RadioButton fx:id="rbtn_efficiencyPrompt" maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#changePromptType" text="%efficiencyAlert" toggleGroup="$tgroup_prompt" />
                      </children>
                   </HBox>
                </children>

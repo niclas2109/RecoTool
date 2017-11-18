@@ -79,7 +79,7 @@
                      </accelerator></MenuItem>
                   <MenuItem fx:id="mi_navigateToNextDestination" disable="true" mnemonicParsing="false" onAction="#navigateToNextDestination" text="%navigateToNextDestination" />
                   <SeparatorMenuItem mnemonicParsing="false" />
-                  <MenuItem fx:id="mi_openAccuracyEvaluationScreen" disable="true" mnemonicParsing="false" onAction="#openAccuracyEvaluationScreen" text="%openAccuracyEvaluationController">
+                  <MenuItem fx:id="mi_openImpactEvaluationScreen" disable="true" mnemonicParsing="false" onAction="#openImpactEvaluationScreen" text="%openImpactEvaluationController">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="A" control="ANY" meta="UP" shift="ANY" shortcut="UP" />
                      </accelerator></MenuItem>
@@ -92,7 +92,7 @@
     </MenuBar>
    </top>
    <center>
-      <VBox alignment="CENTER" BorderPane.alignment="CENTER">
+      <VBox alignment="CENTER" maxHeight="1.7976931348623157E308" minHeight="700.0" BorderPane.alignment="CENTER">
          <children>
             <ImageView fx:id="iv_loading" fitHeight="80.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
                <image>

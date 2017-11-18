@@ -112,10 +112,12 @@ public class ContentBasedFilter {
 
 				double w = (weight.containsKey(e2.getKey().getId())) ? weight.get(e2.getKey().getId()) : 1;
 
-				score += e2.getValue() * e.getValue().get(e2.getKey());
+				double tempScore = e2.getValue() * e.getValue().get(e2.getKey());
 
 				if (this.recommender != null && this.recommender.getWeightingEnabled())
-					score *= w;
+					tempScore *= w;
+
+				score += tempScore;
 			}
 
 			recommendations.put(e.getKey(), score);
@@ -253,7 +255,7 @@ public class ContentBasedFilter {
 		for (Iterator<Entry<Long, Integer>> it = df.entrySet().iterator(); it.hasNext();) {
 			Entry<Long, Integer> e = it.next();
 
-			double idf = (e.getValue() == 0) ? Math.log10(totalNumOfItems / (e.getValue())) : 1;
+			double idf = Math.log10(1 + e.getValue() / (float) totalNumOfItems);
 
 			idfVector.put(e.getKey(), idf);
 		}
@@ -296,6 +298,11 @@ public class ContentBasedFilter {
 				v.put(e.getKey(), score);
 			}
 		}
+		
+		// Add/Increase user characteristics from registration
+		for(Attribute attribute : this.recommender.getApp().getCurrentUser().getAttributeList()) {
+			v.put(attribute, 1.0);
+		}
 
 		return v.entrySet().stream().sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (x, y) -> {
@@ -324,6 +331,12 @@ public class ContentBasedFilter {
 			}
 		}
 
+		for (Attribute attribute : this.recommender.getApp().getCurrentUser().getAttributeList()) {
+			if (!v.contains(attribute)) {
+				v.add(attribute);
+			}
+		}
+
 		return v;
 	}
 
@@ -349,7 +362,7 @@ public class ContentBasedFilter {
 
 			map.put(item, v);
 		}
-
+		
 		return map;
 	}
 

@@ -185,6 +185,9 @@ public class SettingsController implements Initializable {
 			}
 		});
 
+		for (int i = 1; i < 5; i++)
+			this.cb_evaluationDuration.getItems().add((i < 10) ? "0" + i : "" + i);
+
 		for (int i = 5; i < 80; i += 5)
 			this.cb_evaluationDuration.getItems().add((i < 10) ? "0" + i : "" + i);
 
@@ -203,8 +206,11 @@ public class SettingsController implements Initializable {
 			this.cb_startMinute.getSelectionModel().select(this.app.getStartTime().get(Calendar.MINUTE));
 
 			try {
-				this.cb_evaluationDuration.getSelectionModel()
-						.select((int) (this.app.getEvaluationDuration().toMinutes() / 5 - 1));
+				int idx = (int) ((this.app.getEvaluationDuration().toMinutes() < 5)
+						? this.app.getEvaluationDuration().toMinutes() - 1
+						: (this.app.getEvaluationDuration().toMinutes() / 5 - 1) + 4);
+
+				this.cb_evaluationDuration.getSelectionModel().select(idx);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -243,9 +249,9 @@ public class SettingsController implements Initializable {
 			this.tf_walkingSpeedTrainingPositionLat.setText(this.app.getWalkingTrainingPosition().getLatitude() + "");
 			this.tf_walkingSpeedTrainingPositionLng.setText(this.app.getWalkingTrainingPosition().getLongitude() + "");
 
-			this.cb_useAverageUsageDuration.setSelected(this.app.getMaxNumOfItemsToUse() == 0);
+			this.cb_useAverageUsageDuration.setSelected(this.app.getNumOfItemsToUse() == 0);
 
-			this.tf_numberOfItemsToUse.setText(this.app.getMaxNumOfItemsToUse() + "");
+			this.tf_numberOfItemsToUse.setText(this.app.getNumOfItemsToUse() + "");
 			this.updateCheckBoxUsageAvUsageDuration(null);
 
 			this.tf_delayDuration.setText(this.app.getDelayDuration().toMinutes() + "");
@@ -330,7 +336,7 @@ public class SettingsController implements Initializable {
 				.withUseGeocoordinates(this.cb_useGeocoordinates.isSelected())
 				.withRealtimeUserPositionUpdateAccuracyEvaluationMap(
 						this.cb_realtimeUpdateAccuracyEvaluationMap.isSelected())
-				.withMaxNumOfItemsToUse(maxNumOfItems)
+				.withNumOfItemsToUse(maxNumOfItems)
 				.withDelayDuration(Duration.ofMinutes(Long.parseLong(this.tf_delayDuration.getText())))
 				.withDelayPromptTimer(Duration.ofMinutes(Long.parseLong(this.tf_delayPromptTimer.getText())));
 
@@ -341,7 +347,6 @@ public class SettingsController implements Initializable {
 			this.updateSettings();
 
 			this.stage.hide();
-
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -419,7 +424,7 @@ public class SettingsController implements Initializable {
 
 		RecoTool.prefs.put("walkingTrainingPosition", mapper.writeValueAsString(this.app.getWalkingTrainingPosition()));
 
-		RecoTool.prefs.putInt("maxNumOfItemsToUse", this.app.getMaxNumOfItemsToUse());
+		RecoTool.prefs.putInt("maxNumOfItemsToUse", this.app.getNumOfItemsToUse());
 
 		RecoTool.prefs.put("evaluationFilesDirectory", this.lbl_evaluationFilesDirectory.getText());
 
@@ -449,7 +454,7 @@ public class SettingsController implements Initializable {
 	@FXML
 	public void updateCheckBoxDelayDuration(KeyEvent ev) {
 		boolean active = this.tf_delayDuration.getText().compareTo("") != 0
-				&& Long.parseLong(this.tf_delayDuration.getText()) <= 0;
+				&& Long.parseLong(this.tf_delayDuration.getText()) > 0;
 		this.cb_delayEnable.setSelected(active);
 
 		this.setDelayDuration(null);
@@ -457,7 +462,7 @@ public class SettingsController implements Initializable {
 
 	@FXML
 	public void setDelayDuration(MouseEvent ev) {
-		if (this.cb_delayEnable.isSelected()) {
+		if (!this.cb_delayEnable.isSelected()) {
 			this.tf_delayDuration.setDisable(true);
 			this.tf_delayPromptTimer.setDisable(true);
 

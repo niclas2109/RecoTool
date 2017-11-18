@@ -29,11 +29,10 @@ public class TrainingController {
 
 	@FXML
 	Label text_descriptionLeft;
-	
-	
+
 	@FXML
 	ImageView iv_rightItem;
-	
+
 	@FXML
 	Button btn_right;
 
@@ -42,8 +41,7 @@ public class TrainingController {
 
 	@FXML
 	Label text_descriptionRight;
-	
-	
+
 	TrainingListener listener;
 
 	RecoTool app;
@@ -109,9 +107,11 @@ public class TrainingController {
 			text_descriptionLeft.setText(items.get(0).getDescription());
 			text_descriptionRight.setText(items.get(1).getDescription());
 
-			iv_leftItem.setImage(new Image(new ByteArrayInputStream(items.get(0).getImage().getImage())));
-			iv_rightItem.setImage(new Image(new ByteArrayInputStream(items.get(1).getImage().getImage())));
-			
+			Image imgLeft = new Image(new ByteArrayInputStream(items.get(0).getImage().getImage()));
+			iv_leftItem.setImage(imgLeft);
+
+			Image imgRight = new Image(new ByteArrayInputStream(items.get(1).getImage().getImage()));
+			iv_rightItem.setImage(imgRight);
 
 			Platform.runLater(() -> lbl_right.requestFocus());
 		} catch (Exception e) {

@@ -5,13 +5,13 @@ import java.beans.PropertyChangeListener;
 
 import com.doccuty.radarplus.model.Geoposition;
 import com.doccuty.radarplus.model.Setting;
-import com.doccuty.radarplus.view.controller.AccuracyEvaluationController;
+import com.doccuty.radarplus.view.controller.ImpactEvaluationController;
 
 public class AccuracyEvaluationListener implements PropertyChangeListener {
 
-	AccuracyEvaluationController controller;
+	ImpactEvaluationController controller;
 	
-	public AccuracyEvaluationListener(AccuracyEvaluationController controller) {
+	public AccuracyEvaluationListener(ImpactEvaluationController controller) {
 		this.controller = controller;
 	}
 	

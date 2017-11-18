@@ -6,8 +6,17 @@
 	<session-factory>
 
 		<property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+		
+		<!-- Change Mysql-User Settings here -->
+
 		<property name="hibernate.connection.username">root</property>
 		<property name="hibernate.connection.password">SimBaR2016?!mysqL</property>
+
+		<!-- 
+		<property name="hibernate.connection.username">root</property>
+		<property name="hibernate.connection.password">robotair</property>
+		-->
+
 		<property name="hibernate.connection.url">jdbc:mysql://localhost:3306/radarplus?serverTimezone=UTC</property>
 		<property name="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</property>
 
@@ -16,11 +25,11 @@
 		<property name="hibernate.connection.release_mode">auto</property>
 		<property name="current_session_context_class">thread</property>
 		<property name="hibernate.connection.autoReconnect">true</property>
-		
-		<!-- <property name="hibernate.hbm2ddl.auto">update</property>  -->
-		
-		<property name="hibernate.hbm2ddl.auto">create</property>
-		<property name="hibernate.hbm2ddl.import_files">import-mysql.sql</property>
+
+		<property name="hibernate.hbm2ddl.auto">update</property>
+
+		<!-- <property name="hibernate.hbm2ddl.auto">create</property> <property 
+			name="hibernate.hbm2ddl.import_files">import-mysql.sql</property> -->
 
 		<mapping class="com.doccuty.radarplus.model.Address"></mapping>
 		<mapping class="com.doccuty.radarplus.model.Attribute"></mapping>

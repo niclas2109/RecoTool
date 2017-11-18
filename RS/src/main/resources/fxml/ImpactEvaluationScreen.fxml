@@ -15,15 +15,15 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" stylesheets="@style.css" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.doccuty.radarplus.view.controller.AccuracyEvaluationController">
+<AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" stylesheets="@style.css" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.doccuty.radarplus.view.controller.ImpactEvaluationController">
    <children>
       <HBox layoutX="15.0" layoutY="15.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="30.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <AnchorPane HBox.hgrow="NEVER">
+            <AnchorPane maxWidth="550.0" minWidth="500.0" prefWidth="500.0" HBox.hgrow="NEVER">
                <children>
                   <VBox fx:id="vbox_info" spacing="8.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                      <children>
-                        <Label fx:id="lbl_infoText" alignment="TOP_LEFT" cacheShape="false" centerShape="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="120.0" scaleShape="false" text="%accurayEvaluation.info" wrapText="true" VBox.vgrow="ALWAYS" />
+                        <Label fx:id="lbl_infoText" alignment="TOP_LEFT" cacheShape="false" centerShape="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="120.0" scaleShape="false" text="%impactEvaluation.info" wrapText="true" VBox.vgrow="ALWAYS" />
                         <ListView fx:id="lv_usedItems" />
                         <ButtonBar VBox.vgrow="NEVER">
                           <buttons>
@@ -37,14 +37,19 @@
                   </VBox>
                   <VBox fx:id="vbox_evaluation" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="8.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                      <children>
-                        <Label alignment="TOP_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Btte wähle das Item aus, das Sie in dem vorherigen Szenario am liebsten wahrgenommen hätten:" wrapText="true">
+                        <Label alignment="TOP_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="%impactEvaluation.description" wrapText="true" VBox.vgrow="ALWAYS">
                            <VBox.margin>
                               <Insets bottom="5.0" />
                            </VBox.margin>
                         </Label>
+                        <HBox fx:id="hbox_usedItemList" maxWidth="1.7976931348623157E308" spacing="10.0" styleClass="chosenItemHBox" visible="false">
+                           <padding>
+                              <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                           </padding>
+                        </HBox>
                         <HBox spacing="5.0" VBox.vgrow="NEVER">
                            <children>
-                              <Label text="Verbleibende Zeit bis zur Abfahrt:" />
+                              <Label text="Verbleibende Zeit bis zur Abfahrt:" HBox.hgrow="NEVER" />
                               <Label fx:id="lbl_timeToDepature" text="0" />
                               <Label text="%settings.minute" />
                            </children>
@@ -75,8 +80,8 @@
                         </HBox>
                         <TableView fx:id="tv_items" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onKeyReleased="#selectItem" onMouseClicked="#selectItem" VBox.vgrow="ALWAYS">
                           <columns>
-                            <TableColumn fx:id="tc_itemName" minWidth="300.0" prefWidth="330.0" text="Name" />
-                            <TableColumn fx:id="tc_itemDistance" maxWidth="150.0" minWidth="150.0" prefWidth="150.0" text="Entfernung [m]" />
+                            <TableColumn fx:id="tc_itemName" minWidth="300.0" prefWidth="330.0" sortable="false" text="Name" />
+                            <TableColumn fx:id="tc_itemDistance" maxWidth="150.0" minWidth="150.0" prefWidth="150.0" sortable="false" text="Entfernung [m]" />
                           </columns>
                            <VBox.margin>
                               <Insets />
@@ -87,7 +92,7 @@
                         </TableView>
                         <ButtonBar VBox.vgrow="NEVER">
                           <buttons>
-                              <Button defaultButton="true" mnemonicParsing="false" onAction="#applySelection" text="auswählen" />
+                              <Button fx:id="btn_applyButton" defaultButton="true" disable="true" mnemonicParsing="false" onAction="#applySelection" text="auswählen" />
                           </buttons>
                            <VBox.margin>
                               <Insets top="12.0" />
@@ -97,11 +102,11 @@
                   </VBox>
                </children>
             </AnchorPane>
-            <Pane fx:id="p_map" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="SOMETIMES">
+            <Pane fx:id="p_map" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="400.0" HBox.hgrow="SOMETIMES">
                <children>
-                  <VBox>
+                  <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                      <children>
-                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                        <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" spacing="10.0">
                            <children>
                               <ImageView fitHeight="10.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
                                  <image>

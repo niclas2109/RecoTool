@@ -8,10 +8,11 @@ public class SystemPrompt {
 	public final static String SYSTEM_PROMPT_MODE_SUCCESS = "system-prompt-success";
 	public final static String SYSTEM_PROMPT_MODE_ERROR = "system-prompt-error";
 	public final static String SYSTEM_PROMPT_MODE_INFO = "system-prompt-info";
+	public final static String SYSTEM_PROMPT_MODE_EFFICIENCY = "system-prompt-efficiency";
 
 	long id;
-	String mode;
-	String message;
+	private String mode;
+	private String message;
 
 	public SystemPrompt() {
 

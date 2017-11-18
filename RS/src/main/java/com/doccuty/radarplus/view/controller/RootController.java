@@ -61,7 +61,7 @@ public class RootController implements Initializable {
 	MenuItem mi_navigateToNextDestination;
 
 	@FXML
-	MenuItem mi_openAccuracyEvaluationScreen;
+	MenuItem mi_openImpactEvaluationScreen;
 
 	@FXML
 	MenuItem mi_saveScoresToFile;
@@ -79,7 +79,7 @@ public class RootController implements Initializable {
 
 	private Stage stage;
 	private Stage secondStage;
-	
+
 	private ResourceBundle bundle;
 
 	RootListener listener;
@@ -124,6 +124,13 @@ public class RootController implements Initializable {
 		this.mi_trainWalkingSpeed.setDisable(disable);
 	}
 
+	/**
+	 * Open SettingsScreen to configure RecoTool
+	 * 
+	 * @param ev
+	 * @return
+	 */
+
 	@FXML
 	public SettingsController openSettings(ActionEvent ev) {
 
@@ -152,6 +159,12 @@ public class RootController implements Initializable {
 		return controller;
 	}
 
+	/**
+	 * Open UserProfileController Screen to open an existing user profile
+	 * 
+	 * @param ev
+	 * @return
+	 */
 	@FXML
 	public OpenUserProfileController openUserProfile(ActionEvent ev) {
 
@@ -176,10 +189,18 @@ public class RootController implements Initializable {
 		}
 
 		this.secondStage.showAndWait();
+		this.secondStage.toFront();
 
 		return controller;
 	}
 
+	/**
+	 * Open WalkingSpeedTrainerController to train a user's walking speed into the
+	 * system
+	 * 
+	 * @param ev
+	 * @return
+	 */
 	@FXML
 	public WalkingSpeedTrainerController openWalkingSpeedTrainerScreen(ActionEvent ev) {
 
@@ -204,24 +225,38 @@ public class RootController implements Initializable {
 		}
 
 		this.secondStage.showAndWait();
+		this.secondStage.toFront();
 
 		return controller;
 	}
 
+	/**
+	 * Navigation to next destination which is defined in settings
+	 * 
+	 * @param ev
+	 */
 	@FXML
 	public void navigateToNextDestination(ActionEvent ev) {
 		this.app.startNavigationToLastDestination();
 	}
 
+	/**
+	 * Opens ImpactEvaluationController
+	 * 
+	 * @param ev
+	 * @return
+	 */
 	@FXML
-	public AccuracyEvaluationController openAccuracyEvaluationScreen(ActionEvent ev) {
+	public ImpactEvaluationController openImpactEvaluationScreen(ActionEvent ev) {
 
-		AccuracyEvaluationController controller = null;
+		this.startNewEvaluation(null);
+		
+		ImpactEvaluationController controller = null;
 
 		try {
 			// Load person overview.
 			FXMLLoader loader = new FXMLLoader();
-			loader.setLocation(getClass().getClassLoader().getResource("fxml/AccuracyEvaluationScreen.fxml"));
+			loader.setLocation(getClass().getClassLoader().getResource("fxml/ImpactEvaluationScreen.fxml"));
 			loader.setResources(ResourceBundle.getBundle(MainApp.LOCALES_FILE_PATH, MainApp.getSystemLocale()));
 
 			AnchorPane personOverview = (AnchorPane) loader.load();
@@ -229,7 +264,7 @@ public class RootController implements Initializable {
 
 			this.secondStage.setScene(s);
 
-			controller = (AccuracyEvaluationController) loader.getController();
+			controller = (ImpactEvaluationController) loader.getController();
 			controller.withApp(this.app).withStage(this.secondStage).init();
 
 		} catch (IOException e) {
@@ -237,16 +272,29 @@ public class RootController implements Initializable {
 		}
 
 		this.secondStage.showAndWait();
+		this.secondStage.toFront();
 
 		return controller;
 	}
 
+	/**
+	 * Saves current scores of listed items in WoZ-Controller Screen
+	 * 
+	 * @param ev
+	 */
 	@FXML
 	public void saveCurrentScores(ActionEvent ev) {
 		this.app.getResultTracker().writeToCSV(this.app.getRecommender().getRecommendations(),
 				this.app.getCurrentUser(), this.app.getSetting());
 	}
 
+	/**
+	 * Opens SavedItemScoresController which provides a list of all saved item
+	 * scores
+	 * 
+	 * @param ev
+	 * @return
+	 */
 	@FXML
 	public SavedItemScoresController openResultFileScreen(ActionEvent ev) {
 		SavedItemScoresController controller = null;
@@ -273,6 +321,12 @@ public class RootController implements Initializable {
 		return controller;
 	}
 
+	/**
+	 * Opens AboutScreen to gather more information about RecoTool
+	 * 
+	 * @param ev
+	 * @return
+	 */
 	@FXML
 	public AboutController openAboutScreen(ActionEvent ev) {
 
@@ -300,6 +354,12 @@ public class RootController implements Initializable {
 		return controller;
 	}
 
+	/**
+	 * Opens SystemPromptController to send Messages to DataGlasses Client via MQTT
+	 * 
+	 * @param ev
+	 * @return
+	 */
 	@FXML
 	public SystemPromptController openSystemPromptController(ActionEvent ev) {
 
@@ -328,6 +388,11 @@ public class RootController implements Initializable {
 		return controller;
 	}
 
+	/**
+	 * Start a new Evaluation and keep/discard current setting
+	 * 
+	 * @param ev
+	 */
 	@FXML
 	public void startNewEvaluation(ActionEvent ev) {
 		try {
@@ -350,12 +415,23 @@ public class RootController implements Initializable {
 		System.exit(0);
 	}
 
+	/**
+	 * Reset everything
+	 * 
+	 * @param ev
+	 */
 	@FXML
 	public void startNew(ActionEvent ev) {
-		this.app.withCurrentItem(null).withCurrentUser(new User());
+		this.app.getRecommender().resetRecommendations();
+		this.app.withCurrentItem(null).withCurrentUser(new User()).getSetting().getUsedItem().clear();
 		this.showRegisterScreen();
 	}
 
+	/**
+	 * Save current user
+	 * 
+	 * @param ev
+	 */
 	@FXML
 	public void save(ActionEvent ev) {
 
@@ -374,7 +450,7 @@ public class RootController implements Initializable {
 
 			String title = bundle.getString("evaluationRunning");
 			String msg = bundle.getString("saveUserMessage");
-			
+
 			Alert alert = new Alert(AlertType.CONFIRMATION);
 			alert.setTitle(title);
 			alert.setHeaderText(null);
@@ -531,8 +607,9 @@ public class RootController implements Initializable {
 			this.noUserAlert();
 			return null;
 		}
-		
-		if (this.app.getStartTrafficJunction() == null || this.app.getEndTrafficJunction() == null) {
+
+		if (this.app.getStartTrafficJunction() == null || this.app.getEndTrafficJunction() == null
+				|| this.app.getStartTrafficJunction().getId() == 0 || this.app.getEndTrafficJunction().getId() == 0) {
 			this.noTrafficJunctionAlert();
 			return null;
 		}
@@ -565,11 +642,10 @@ public class RootController implements Initializable {
 	}
 
 	private void noUserAlert() {
-		
 
 		String title = bundle.getString("noUser");
 		String message = bundle.getString("noUserMessage");
-		
+
 		Alert alert = new Alert(AlertType.ERROR);
 		alert.setTitle(title);
 		alert.setHeaderText(null);
@@ -577,12 +653,12 @@ public class RootController implements Initializable {
 
 		alert.showAndWait();
 	}
-	
+
 	private void noTrafficJunctionAlert() {
 
 		String title = bundle.getString("noTrafficJunction");
 		String message = bundle.getString("noTrafficJunctionMessage");
-		
+
 		Alert alert = new Alert(AlertType.ERROR);
 		alert.setTitle(title);
 		alert.setHeaderText(null);
@@ -595,7 +671,7 @@ public class RootController implements Initializable {
 		this.mi_startNewEvaluation.setDisable(!value);
 		this.mi_openSystemPromptController.setDisable(!value);
 		this.mi_navigateToNextDestination.setDisable(!value);
-		this.mi_openAccuracyEvaluationScreen.setDisable(!value);
+		this.mi_openImpactEvaluationScreen.setDisable(!value);
 		this.mi_saveScoresToFile.setDisable(!value);
 	}
 
@@ -603,7 +679,7 @@ public class RootController implements Initializable {
 
 		String title = bundle.getString("evaluationRunning");
 		String message = bundle.getString("evaluationCancelMessage");
-		
+
 		Alert alert = new Alert(AlertType.CONFIRMATION);
 		alert.setTitle(title);
 		alert.setHeaderText(null);

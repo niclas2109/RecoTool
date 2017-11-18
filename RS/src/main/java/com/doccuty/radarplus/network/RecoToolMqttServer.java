@@ -4,6 +4,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -86,7 +87,7 @@ public class RecoToolMqttServer implements Runnable {
 			return false;
 		}
 
-		this.client = new MqttClient(this.brokerURI + ":" + this.brokerPort, PROPERTY_SERVER_TOPIC);
+		this.client = new MqttClient(this.brokerURI + ":" + this.brokerPort, PROPERTY_SERVER_TOPIC + UUID.randomUUID());
 
 		this.client.setCallback(this.callback);
 		this.client.connect();

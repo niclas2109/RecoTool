@@ -3,7 +3,8 @@ package com.doccuty.radarplus.model;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -42,10 +43,10 @@ public class Setting implements Cloneable {
 	private Date estimatedArrivalTime;
 
 	@Transient
-	private HashMap<Item, Setting> usedItems;
+	private LinkedHashMap<Item, Setting> usedItems;
 
 	public Setting() {
-		this.usedItems = new HashMap<Item, Setting>();
+		this.usedItems = new LinkedHashMap<Item, Setting>();
 	}
 
 	// ================================================
@@ -66,9 +67,9 @@ public class Setting implements Cloneable {
 	// ================================================
 
 	public Date getCurrentTime() {
-		if(this.currentTime == null)
+		if (this.currentTime == null)
 			this.currentTime = new Date();
-		
+
 		return this.currentTime;
 	}
 
@@ -191,7 +192,7 @@ public class Setting implements Cloneable {
 
 	// ================================================
 
-	public HashMap<Item, Setting> getUsedItem() {
+	public LinkedHashMap<Item, Setting> getUsedItem() {
 		return this.usedItems;
 	}
 
@@ -215,7 +216,7 @@ public class Setting implements Cloneable {
 	}
 
 	public void clearUsedItem() {
-		this.usedItems = new HashMap<Item, Setting>();
+		this.usedItems = new LinkedHashMap<Item, Setting>();
 	}
 
 	// ================================================

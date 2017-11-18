@@ -7,9 +7,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.doccuty.radarplus.model.Item;
 import com.doccuty.radarplus.model.RecoTool;
@@ -32,14 +34,14 @@ public class ResultTracker {
 	 * 
 	 * @param map
 	 * @param user
-	 * @param s
+	 * @param setting
 	 */
 
-	public void writeToCSV(LinkedHashMap<Item, Double> map, User user, Setting s) {
+	public void writeToCSV(LinkedHashMap<Item, Double> map, User user, Setting setting) {
 
-		String filename = user.getId() + "-" + s.getUsedItem().size() + ".csv";
+		String filename = user.getId() + "-" + setting.getUsedItem().size() + ".csv";
 
-		this.writeCurrentItemScoreToCSV(map, user, s, filename);
+		this.writeCurrentItemScoreToCSV(map, user, setting, filename);
 	}
 
 	/**
@@ -61,16 +63,25 @@ public class ResultTracker {
 
 		try (Writer writer = new FileWriter(path)) {
 
-			writer.append(String.valueOf("ID")).append(',').append(String.valueOf("name")).append(',')
-					.append(String.valueOf("latitude")).append(',').append(String.valueOf("longitude")).append(',')
-					.append(String.valueOf("score")).append(eol);
+			writer.append(String.valueOf("ID")).append(',').append(String.valueOf("Position")).append(',')
+					.append(String.valueOf("name")).append(',').append(String.valueOf("latitude")).append(',')
+					.append(String.valueOf("longitude")).append(',').append(String.valueOf("score")).append(eol);
+
+			int position = 1;
+			double lastScore = 2;
 
 			for (Map.Entry<Item, Double> entry : map.entrySet()) {
-				writer.append(String.valueOf(entry.getKey().getId())).append(',')
-						.append(String.valueOf(entry.getKey().getName())).append(',')
+				writer.append(String.valueOf(entry.getKey().getId())).append(',').append(String.valueOf(position))
+						.append(',').append(String.valueOf(entry.getKey().getName())).append(',')
 						.append(String.valueOf(entry.getKey().getGeoposition().getLatitude())).append(',')
 						.append(String.valueOf(entry.getKey().getGeoposition().getLongitude())).append(',')
 						.append(String.valueOf(entry.getValue())).append(eol);
+
+				if (lastScore != entry.getValue()) {
+					position++;
+				}
+
+				lastScore = entry.getValue();
 			}
 
 			this.firePropertyChange(PROPERTY_SAVED_ITEM_SCORES, null, filename);
@@ -93,16 +104,52 @@ public class ResultTracker {
 			filename += ".csv";
 		}
 
-		try (Writer writer = new FileWriter(RecoTool.prefs.get("evaluationFilesDirectory", "") +"/"+ filename)) {
+		try (Writer writer = new FileWriter(RecoTool.prefs.get("evaluationFilesDirectory", "") + "/" + filename)) {
 
 			writer.append(String.valueOf("ID")).append(',').append(String.valueOf("name")).append(',')
-					.append(String.valueOf("latitude")).append(',').append(String.valueOf("longitude")).append(',')
-					.append(eol);
+					.append(String.valueOf("latitude")).append(',').append(String.valueOf("longitude")).append(eol);
 
 			for (Item item : items) {
 				writer.append(String.valueOf(item.getId())).append(',').append(String.valueOf(item.getName()))
 						.append(',').append(String.valueOf(item.getGeoposition().getLatitude())).append(',')
-						.append(String.valueOf(item.getGeoposition().getLongitude())).append(',').append(eol);
+						.append(String.valueOf(item.getGeoposition().getLongitude())).append(eol);
+			}
+
+			this.firePropertyChange(PROPERTY_SAVED_ITEM_SCORES, null, filename);
+		} catch (IOException ex) {
+			this.firePropertyChange(PROPERTY_FAILED_TO_SAVE_ITEM_SCORES, null, filename);
+			ex.printStackTrace(System.err);
+		}
+	}
+
+	/**
+	 * Write a given list into *.csv
+	 * 
+	 * @param items
+	 * @param user
+	 */
+
+	public void writeItemMapToCSV(LinkedHashMap<Item, Setting> items, String filename) {
+
+		if (this.getFileSuffix(filename).compareTo("csv") != 0) {
+			filename += ".csv";
+		}
+
+		try (Writer writer = new FileWriter(RecoTool.prefs.get("evaluationFilesDirectory", "") + "/" + filename)) {
+
+			writer.append(String.valueOf("ID")).append(',').append(String.valueOf("name")).append(',')
+					.append(String.valueOf("latitude")).append(',').append(String.valueOf("longitude")).append(',')
+					.append(String.valueOf("timestamp")).append(eol);
+
+			for (Iterator<Entry<Item, Setting>> it = items.entrySet().iterator(); it.hasNext();) {
+				Entry<Item, Setting> entry = it.next();
+				Item item = entry.getKey();
+				Setting setting = entry.getValue();
+
+				writer.append(String.valueOf(item.getId())).append(',').append(String.valueOf(item.getName()))
+						.append(',').append(String.valueOf(item.getGeoposition().getLatitude())).append(',')
+						.append(String.valueOf(item.getGeoposition().getLongitude())).append(',')
+						.append(String.valueOf(setting.getCurrentTime().getTime())).append(eol);
 			}
 
 			this.firePropertyChange(PROPERTY_SAVED_ITEM_SCORES, null, filename);
