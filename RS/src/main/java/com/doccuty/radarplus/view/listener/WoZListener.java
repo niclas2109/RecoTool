@@ -8,6 +8,7 @@ import com.doccuty.radarplus.evaluation.ResultTracker;
 import com.doccuty.radarplus.model.Geoposition;
 import com.doccuty.radarplus.model.Item;
 import com.doccuty.radarplus.model.RecoTool;
+import com.doccuty.radarplus.model.RecoTool.UsedItem;
 import com.doccuty.radarplus.model.Setting;
 import com.doccuty.radarplus.model.SystemPrompt;
 import com.doccuty.radarplus.view.controller.WoZController;
@@ -50,7 +51,7 @@ public class WoZListener implements PropertyChangeListener {
 		} else if (evt.getPropertyName().compareTo(ResultTracker.PROPERTY_FAILED_TO_SAVE_ITEM_SCORES) == 0) {
 			this.controller.scoresSavedToFile(SystemPrompt.SYSTEM_PROMPT_MODE_ERROR, (String) evt.getNewValue());
 		} else if (evt.getPropertyName().compareTo(RecoTool.PROPERTY_ITEM_USAGE_DONE) == 0) {
-			this.controller.itemUsageUpdate((Item) evt.getNewValue());
+			this.controller.itemUsageUpdate((UsedItem) evt.getNewValue());
 		}
 	}
 

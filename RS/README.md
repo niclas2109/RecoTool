@@ -9,31 +9,15 @@ This projects requires:
 Database configurations can be made in
 	/src/main/resources/hibernate.cfg.xml
 	
-	
-#General Functions
-- Register Screen
-
-
-
-- Training Screen
-
-
-
-- WoZ Controller
-
-
-
-- Settings
-
 
 #Compilation
 
-Create an executable *.jar by executing:
+After you made changes in source code, create an executable *.jar by executing:
 
 	mvn clean compile assembly:single
 	
 #Credits
-All icon are taken from
+All icons are taken from
 	https://icons8.com/
 	
 The RadAR+ Logo is taken from University of Kassel:

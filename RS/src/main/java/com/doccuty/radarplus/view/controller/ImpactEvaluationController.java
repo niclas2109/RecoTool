@@ -128,7 +128,7 @@ public class ImpactEvaluationController implements Initializable {
 
 	public void initialize(URL location, ResourceBundle resources) {
 
-		this.listener = new AccuracyEvaluationListener(this);
+		//this.listener = new AccuracyEvaluationListener(this);
 
 		this.imageViewList = new ArrayList<ImageView>();
 		itemSymbol = new Image(getClass().getClassLoader().getResource("images/item-symbol.png").toString());
@@ -171,7 +171,7 @@ public class ImpactEvaluationController implements Initializable {
 		this.lv_usedItems.setItems(this.usedItems);
 
 		this.iv_map.fitWidthProperty().bind(p_map.widthProperty());
-		// this.iv_map.fitHeightProperty().bind(p_map.heightProperty());
+		this.iv_map.fitHeightProperty().bind(p_map.heightProperty());
 	}
 
 	public void init() {

@@ -75,6 +75,13 @@
 		    <version>2.9.1</version>
 		</dependency>
 
+		<!--  Apache POI for Excel support -->
+		<dependency>
+		  <groupId>org.apache.poi</groupId>
+		  <artifactId>poi-ooxml</artifactId>
+		  <version>3.15</version>
+		</dependency>
+		
 
 		<!-- JUnit for testing -->
 		<dependency>

@@ -95,7 +95,10 @@ public class MQTTConnector : MonoBehaviour
 
     // backgroundcolor for warning messages
     private Color errorColor;
-    
+
+    // backgroundcolor for investigator messages
+    private Color efficiencyColor;
+
     // progress bar
     public GameObject progressBarWrapper;
     public GameObject progressBar;
@@ -127,6 +130,7 @@ public class MQTTConnector : MonoBehaviour
         this.originalColor = recommendationPanel1.GetComponent<Image>().color;
         this.highlightColor = new Color(0.63f, 0.40f, 0.15f, 1);
         this.errorColor = new Color(0.52f, 0.1f, 0.1f, 1);
+        this.efficiencyColor = new Color(0.82f, 0.38f, 0.14f, 1);
 
         this.resetApplication();
 
@@ -332,6 +336,11 @@ public class MQTTConnector : MonoBehaviour
                 {
                     this.systemAlertBackgroundColor.color = this.errorColor;
                     this.systemAlertIcon.texture = this.errorTxtr;
+                }
+                else if (String.Equals(currentAlert.mode, SystemAlert.SYSTEM_PROMPT_MODE_EFFICIENCY))
+                {
+                    this.systemAlertBackgroundColor.color = this.efficiencyColor;
+                    this.systemAlertIcon.texture = this.infoTxtr;
                 }
                 else
                 {
@@ -733,7 +742,7 @@ public class MQTTConnector : MonoBehaviour
             {
                 SystemAlert alert = systemAlerts[i];
                 // Remove deprecated navigation messages
-                if (12 <= alert.id && alert.id <= 16)
+                if (12 <= alert.id && alert.id < 16)
                 {
                     Debug.Log("removed " + alert.id);
                     systemAlerts.Remove(alert);

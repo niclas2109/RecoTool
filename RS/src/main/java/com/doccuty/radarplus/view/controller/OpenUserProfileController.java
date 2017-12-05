@@ -23,6 +23,9 @@ public class OpenUserProfileController {
 	TableView<User> tv_user;
 
 	@FXML
+	TableColumn<User, Long> tc_id;
+
+	@FXML
 	TableColumn<User, String> tc_firstname;
 
 	@FXML
@@ -46,6 +49,7 @@ public class OpenUserProfileController {
 
 	public void initialize() {
 
+		tc_id.setCellValueFactory(new PropertyValueFactory<User, Long>("id"));
 		tc_firstname.setCellValueFactory(new PropertyValueFactory<User, String>("firstname"));
 		tc_lastname.setCellValueFactory(new PropertyValueFactory<User, String>("lastname"));
 		tc_lastUpdated.setCellValueFactory(new PropertyValueFactory<User, Date>("dateOfLastUpdate"));

@@ -44,7 +44,7 @@ class MapManager:
     POST_BOX = '../resources/model/postbox.osgb'
 
     # Height of cameria
-    fixedCameraHeight = 3.5
+    fixedCameraHeight = 2.45
     
     # Height of POI objects
     fixedPOIHeight = 4.5
@@ -151,6 +151,8 @@ class MapManager:
         
         self.mode = self.RECOMMENDER_ABIDANCE_MODE
         self.navigateTo = None
+        
+        viz.playSound('../resources/Hauptbahnhof.wav', viz.LOOP)
 
         
     def setMQTTConnector(self, mqttConnector):
@@ -451,8 +453,7 @@ class MapManager:
         if self.mode == self.RECOMMENDER_EFFICIENCY_MODE:
             self.switchRecommenderMode(self.mode, self.navigateTo)
             
-        print('set num of items ' + str(len(items)));
-          
+        print('set num of items ' + str(len(items)))
           
           
     """

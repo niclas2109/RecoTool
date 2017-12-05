@@ -52,6 +52,9 @@ public class RootController implements Initializable {
 	MenuItem mi_openRegisterScreen;
 
 	@FXML
+	MenuItem mi_openNavigationController;
+
+	@FXML
 	MenuItem mi_startNewEvaluation;
 
 	@FXML
@@ -146,6 +149,7 @@ public class RootController implements Initializable {
 			Scene s = new Scene(personOverview);
 
 			this.secondStage.setScene(s);
+			this.secondStage.setMaximized(false);
 
 			controller = (SettingsController) loader.getController();
 			controller.withApp(this.app).withStage(this.secondStage).init();
@@ -180,6 +184,7 @@ public class RootController implements Initializable {
 			Scene s = new Scene(personOverview);
 
 			this.secondStage.setScene(s);
+			this.secondStage.setMaximized(false);
 
 			controller = (OpenUserProfileController) loader.getController();
 			controller.withApp(this.app).setStage(this.secondStage);
@@ -216,6 +221,7 @@ public class RootController implements Initializable {
 			Scene s = new Scene(personOverview);
 
 			this.secondStage.setScene(s);
+			this.secondStage.setMaximized(false);
 
 			controller = (WalkingSpeedTrainerController) loader.getController();
 			controller.withStudyApp(this.app).withStage(this.secondStage).init();
@@ -250,7 +256,7 @@ public class RootController implements Initializable {
 	public ImpactEvaluationController openImpactEvaluationScreen(ActionEvent ev) {
 
 		this.startNewEvaluation(null);
-		
+
 		ImpactEvaluationController controller = null;
 
 		try {
@@ -259,10 +265,12 @@ public class RootController implements Initializable {
 			loader.setLocation(getClass().getClassLoader().getResource("fxml/ImpactEvaluationScreen.fxml"));
 			loader.setResources(ResourceBundle.getBundle(MainApp.LOCALES_FILE_PATH, MainApp.getSystemLocale()));
 
-			AnchorPane personOverview = (AnchorPane) loader.load();
-			Scene s = new Scene(personOverview);
+			AnchorPane impactPane = (AnchorPane) loader.load();
+			Scene s = new Scene(impactPane);
 
 			this.secondStage.setScene(s);
+			this.secondStage.setMaximized(false);
+			this.secondStage.setWidth(950);
 
 			controller = (ImpactEvaluationController) loader.getController();
 			controller.withApp(this.app).withStage(this.secondStage).init();
@@ -272,7 +280,6 @@ public class RootController implements Initializable {
 		}
 
 		this.secondStage.showAndWait();
-		this.secondStage.toFront();
 
 		return controller;
 	}
@@ -309,6 +316,7 @@ public class RootController implements Initializable {
 			Scene s = new Scene(personOverview);
 
 			this.secondStage.setScene(s);
+			this.secondStage.setMaximized(false);
 
 			controller = (SavedItemScoresController) loader.getController();
 			controller.withApp(this.app).withStage(this.secondStage).init();
@@ -321,6 +329,16 @@ public class RootController implements Initializable {
 		return controller;
 	}
 
+
+	/**
+	 * Creates an Excel-File from all Items in database
+	 * @param ev
+	 */
+	@FXML
+	public void createExcelSheet(ActionEvent ev) {
+		this.app.getResultTracker().createExcelFile(this.app.getItems());
+	}
+	
 	/**
 	 * Opens AboutScreen to gather more information about RecoTool
 	 * 
@@ -342,6 +360,7 @@ public class RootController implements Initializable {
 			Scene s = new Scene(personOverview);
 
 			this.secondStage.setScene(s);
+			this.secondStage.setMaximized(false);
 
 			controller = (AboutController) loader.getController();
 			controller.withApp(this.app).withStage(this.secondStage).init();
@@ -375,6 +394,7 @@ public class RootController implements Initializable {
 			Scene s = new Scene(personOverview);
 
 			this.secondStage.setScene(s);
+			this.secondStage.setMaximized(false);
 
 			controller = (SystemPromptController) loader.getController();
 			controller.withApp(this.app).withStage(this.secondStage);
@@ -471,6 +491,11 @@ public class RootController implements Initializable {
 	@FXML
 	public void openRegisterScreen(ActionEvent ev) {
 		this.showRegisterScreen();
+	}
+
+	@FXML
+	public void openNavigationController(ActionEvent ev) {
+		this.showNavigationScreen();
 	}
 
 	@FXML
@@ -633,6 +658,45 @@ public class RootController implements Initializable {
 
 			controller = (WoZController) loader.getController();
 			controller.withStudyApp(this.app).withParent(this).init();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return controller;
+	}
+
+	/**
+	 * Shows the registration screen inside the root layout.
+	 */
+	public NavigationController showNavigationScreen() {
+
+		if (this.app.getCurrentUser().getId() <= 0) {
+			this.noUserAlert();
+			return null;
+		}
+
+		if (this.app.getEvaluationRunning() && !this.stopEvaluation()) {
+			return null;
+		}
+
+		NavigationController controller = null;
+
+		try {
+			// Load person overview.
+			FXMLLoader loader = new FXMLLoader();
+			loader.setLocation(getClass().getClassLoader().getResource("fxml/NavigationScreen.fxml"));
+			loader.setResources(ResourceBundle.getBundle(MainApp.LOCALES_FILE_PATH, MainApp.getSystemLocale()));
+
+			AnchorPane personOverview = (AnchorPane) loader.load();
+
+			// Set person overview into the center of root layout.
+			rootLayout.setCenter(personOverview);
+
+			controller = (NavigationController) loader.getController();
+			controller.withApp(this.app).withParent(this);
+			controller.init();
+			controller.setListeners();
 
 		} catch (IOException e) {
 			e.printStackTrace();

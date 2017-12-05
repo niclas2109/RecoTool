@@ -349,6 +349,34 @@ def initTrackers(initFlag=vizconnect.INIT_INDEPENDENT, initList=None):
 			#VC: apply swap
 			_link.swapPos([1, 2, -3])
 			_link.swapQuat([-1, -2, 3, 4])
+	
+	# HoloLens-Headtracker
+	_name = 'headtracker2'
+	if vizconnect.isPendingInit('tracker', _name, initFlag, initList):
+		#VC: init the raw object
+		if initFlag&vizconnect.INIT_RAW:
+			#VC: set some parameters
+			vrpnName = 'DTrack'
+			ip = '192.168.0.10'
+			index = 1
+			
+			#VC: create the raw object
+			vrpn7 = viz.add('vrpn7.dle')
+			rawTracker[_name] = vrpn7.addTracker(vrpnName+'@'+ip, index)
+	
+		#VC: init the wrapper (DO NOT EDIT)
+		if initFlag&vizconnect.INIT_WRAPPERS:
+			vizconnect.addTracker(rawTracker[_name], _name, make='A.R.T.', model='DTrack')
+	
+		#VC: init the offsets
+		if initFlag&vizconnect.INIT_OFFSETS:
+			_link = vizconnect.getTracker(_name).getLink()
+			#VC: clear link offsets
+			_link.reset(viz.RESET_OPERATORS)
+			
+			#VC: apply swap
+			_link.swapPos([1, 2, -3])
+			_link.swapQuat([-1, -2, 3, 4])
 
 	#VC: initialize a new tracker
 	_name = 'wandtracker'
@@ -458,9 +486,9 @@ def initTransports(initFlag=vizconnect.INIT_INDEPENDENT, initList=None):
 			#VC: set some parameters
 			height = 0
 			acceleration = 1
-			maxSpeed = 4
+			maxSpeed = 2.5
 			rotationAcceleration = 90
-			maxRotationSpeed = 120
+			maxRotationSpeed = 60
 			autoBreakingDragCoef = 0.1
 			dragCoef = 0.0001
 			rotationAutoBreakingDragCoef = 0.2
@@ -494,13 +522,13 @@ def initTransports(initFlag=vizconnect.INIT_INDEPENDENT, initList=None):
 					if rawInput['flystick_analog'].getData()[1] < -0.05:# make=Generic, model=VRPN Analog, name=flystick_analog, signal=Analog 1 Negative
 						transport.moveBackward(mag=abs(rawInput['flystick_analog'].getData()[1]))
 					if rawInput['flystick_analog'].getData()[0] < -0.1:# make=Generic, model=VRPN Analog, name=flystick_analog, signal=Analog 0 Negative
-						transport.turnLeft(mag=abs(rawInput['flystick_analog'].getData()[0]))
+						transport.moveLeft(mag=abs(rawInput['flystick_analog'].getData()[0]))
 					if rawInput['flystick_analog'].getData()[0] > 0.1:# make=Generic, model=VRPN Analog, name=flystick_analog, signal=Analog 0 Positive
-						transport.turnRight(mag=abs(rawInput['flystick_analog'].getData()[0]))
+						transport.moveRight(mag=abs(rawInput['flystick_analog'].getData()[0]))
 					if rawInput['flystick_buttons'].isButtonDown(4):# make=Generic, model=VRPN Buttons, name=flystick_buttons, signal=Button 4
-						transport.moveLeft(mag=1)
+						transport.turnLeft(mag=1)
 					if rawInput['flystick_buttons'].isButtonDown(1):# make=Generic, model=VRPN Buttons, name=flystick_buttons, signal=Button 1
-						transport.moveRight(mag=1)
+						transport.turnRight(mag=1)
 				rawTransport[_name].setUpdateFunction(update)
 	
 		#VC: init the wrapper (DO NOT EDIT)
@@ -620,7 +648,7 @@ def initAvatars(initFlag=vizconnect.INIT_INDEPENDENT, initList=None):
 			#VC: set which trackers animate which body part
 			# format is: bone: (tracker, parent, degrees of freedom used)
 			_trackerAssignmentDict = {
-				vizconnect.AVATAR_HEAD:(vizconnect.getTracker('headtracker').getNode3d(), None, vizconnect.DOF_6DOF),
+				vizconnect.AVATAR_HEAD:(vizconnect.getTracker('headtracker2').getNode3d(), None, vizconnect.DOF_6DOF),
 				vizconnect.AVATAR_R_HAND:(vizconnect.getTracker('wandtracker').getNode3d(), None, vizconnect.DOF_6DOF),
 			}
 			

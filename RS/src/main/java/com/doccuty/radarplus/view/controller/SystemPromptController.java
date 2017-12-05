@@ -129,7 +129,6 @@ public class SystemPromptController implements Initializable {
 		else
 			this.alertType = SystemPrompt.SYSTEM_PROMPT_MODE_INFO;
 
-
 		this.tf_systemMessage.requestFocus();
 	}
 

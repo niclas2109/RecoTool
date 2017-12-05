@@ -27,6 +27,7 @@ import com.doccuty.radarplus.model.Attribute;
 import com.doccuty.radarplus.model.SystemPrompt;
 import com.doccuty.radarplus.model.Item;
 import com.doccuty.radarplus.model.RecoTool;
+import com.doccuty.radarplus.model.RecoTool.UsedItem;
 import com.doccuty.radarplus.model.Setting;
 import com.doccuty.radarplus.network.RecoToolMqttServer;
 import com.doccuty.radarplus.recommender.Recommender;
@@ -169,7 +170,6 @@ public class WoZController implements Initializable {
 	Button btn_hideAll;
 
 	// System Prompt
-
 	@FXML
 	HBox hbox_systemPrompt;
 
@@ -198,7 +198,6 @@ public class WoZController implements Initializable {
 	private boolean timeModeClock;
 
 	public WoZController() {
-
 		this.timeModeClock = false;
 
 		this.listener = new WoZListener().withController(this);
@@ -626,36 +625,32 @@ public class WoZController implements Initializable {
 		this.app.itemUsed();
 	}
 
-	
 	/**
-	 * Update presentation of last used item
-	 * Called after navigation is finished or itemUsageDone button ist clicked
+	 * Update presentation of last used item Called after navigation is finished or
+	 * itemUsageDone button ist clicked
+	 * 
 	 * @param item
 	 */
-	
-	public void itemUsageUpdate(Item item) {
 
-		if (item == null)
+	public void itemUsageUpdate(UsedItem usedItem) {
+
+		if (usedItem == null)
 			return;
 
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
 
-				lbl_lastUsedItem.setText(item.getName());
+				lbl_lastUsedItem.setText(usedItem.getItem().getName());
 
-				if (app.getRecommender().getRecommendations() == null
-						|| app.getRecommender().getRecommendations().get(item) == null) {
+				if (app.getRecommender().getRecommendations() == null || usedItem.getIndex() == 0) {
 					lbl_score.setText("");
 					lbl_position.setText("");
 					return;
 				}
 
-				lbl_score.setText(
-						(Math.round(app.getRecommender().getRecommendations().get(item) * 1000) / 1000.0) + "");
-				lbl_position.setText(
-						(new ArrayList<Item>(app.getRecommender().getRecommendations().keySet()).indexOf(item) + 1)
-								+ "");
+				lbl_score.setText((Math.round(usedItem.getScore() * 1000) / 1000.0) + "");
+				lbl_position.setText(usedItem.getIndex() + "");
 
 			}
 		});
@@ -664,9 +659,10 @@ public class WoZController implements Initializable {
 
 	/**
 	 * Hide all items in dataglasses
+	 * 
 	 * @param ev
 	 */
-	
+
 	@FXML
 	public void hideAll(MouseEvent ev) {
 		try {
@@ -710,6 +706,7 @@ public class WoZController implements Initializable {
 
 	/**
 	 * Show system prompt
+	 * 
 	 * @param mode
 	 * @param message
 	 * @throws IOException
@@ -743,17 +740,16 @@ public class WoZController implements Initializable {
 	}
 
 	/**
-	 * Hide system prompt
-	 * Called by clicking on prompt in WoZ-Controller
+	 * Hide system prompt Called by clicking on prompt in WoZ-Controller
+	 * 
 	 * @param ev
 	 */
 	public void hideSystemPrompt(MouseEvent ev) {
 		this.hbox_systemPrompt.setVisible(false);
 	}
 
-	
 	/**
-	 *  Update user data
+	 * Update user data
 	 */
 	public void updateUserData() {
 		StringBuilder s = new StringBuilder();
@@ -773,6 +769,7 @@ public class WoZController implements Initializable {
 
 	/**
 	 * Update distance to end position in [km]
+	 * 
 	 * @param distance
 	 */
 	public void updateDistanceToEndPosition(double distance) {

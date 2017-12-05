@@ -125,6 +125,10 @@ public class AttributeTree {
 	}
 
 	public boolean removeAttribute(Attribute value) {
+		
+		if(value == null)
+			return false;
+		
 		AttributeTupel aT = null;
 		for (Iterator<AttributeTupel> it = this.attribute.iterator(); it.hasNext();) {
 

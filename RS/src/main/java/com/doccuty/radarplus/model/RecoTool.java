@@ -137,6 +137,8 @@ public class RecoTool {
 		this.server = new RecoToolMqttServer(this);
 
 		this.startTime = Calendar.getInstance();
+		RecoTool.setting.setCurrentTime(this.startTime.getTime());
+
 		this.startPosition = new Geoposition();
 		this.endPosition = new Geoposition();
 
@@ -161,8 +163,13 @@ public class RecoTool {
 
 			// Simulation settings
 			this.startTime.setTime(new Date(RecoTool.prefs.getLong("startTime", 0)));
+			RecoTool.setting.setCurrentTime(this.startTime.getTime());
 
 			this.evaluationDuration = Duration.ofMinutes(RecoTool.prefs.getLong("evaluationDuration", 30));
+			
+			Date departure = new Date(this.startTime.getTime().getTime() + this.evaluationDuration.toMillis());
+			RecoTool.setting.withCurrentTime(this.startTime.getTime()).withEstimatedDepartureTime(departure).withCurrentDepartureTime(departure);
+			
 			this.recommender.getContextBasedPostFilter().setTimeMaximizer(RecoTool.prefs.getDouble("timeMaximizer", 1));
 
 			this.startTrafficJunction = mapper.treeToValue(
@@ -553,7 +560,29 @@ public class RecoTool {
 
 		this.prepareEvaluation(true);
 
-		// Start evaluation countdown
+		this.startClock();
+
+		LOG.info("Evaluation started");
+
+		if (!this.getMQTTClient().isConnected())
+			return;
+
+		// Send introduction for new station to data glasses
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			mapper.setSerializationInclusion(Include.NON_NULL);
+
+			int id = (this.recommender.getMode().equals(Recommender.PROPERTY_ABIDANCE_MODE)) ? 6 : 9;
+			SystemPrompt sP = this.prompts.stream().filter(p -> p.getID() == id).collect(Collectors.toList()).get(0);
+			this.sendSystemPrompt(sP);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	// Start evaluation countdown
+	public void startClock() {
+		
 		this.timerRunning = true;
 
 		this.evaluationTimer.scheduleAtFixedRate(new TimerTask() {
@@ -585,23 +614,6 @@ public class RecoTool {
 				}
 			}
 		}, 0, 1000);
-
-		LOG.info("Evaluation started");
-
-		if (!this.getMQTTClient().isConnected())
-			return;
-
-		// Send introduction for new station to data glasses
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-			mapper.setSerializationInclusion(Include.NON_NULL);
-
-			int id = (this.recommender.getMode().equals(Recommender.PROPERTY_ABIDANCE_MODE)) ? 6 : 9;
-			SystemPrompt sP = this.prompts.stream().filter(p -> p.getID() == id).collect(Collectors.toList()).get(0);
-			this.sendSystemPrompt(sP);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	public static final String PROPERTY_EVALUATION_PREPARED = "evaluationPrepared";
@@ -698,9 +710,13 @@ public class RecoTool {
 		this.recommender.withTimerRunning(false);
 		this.withNavigationDestination(null).withCurrentItem(null);
 
+		// Reset evaluation timer
 		RecoTool.setting.setCurrentTime(this.getStartTime().getTime());
 
-		// Save used items
+		firePropertyChange(PROPERTY_EVALUATION_DURATION, null,
+				Duration.ofMillis(RecoTool.setting.getTimeToDeparture()));
+
+		// Save used items to *.csv file
 		if (RecoTool.setting.getUsedItem().size() > 0) {
 			String filename = "used-items-"
 					+ this.getResultTracker().getNumOfAccuracyEvaluationsOfUser(this.getCurrentUser(), "used-items")
@@ -978,7 +994,7 @@ public class RecoTool {
 		this.getSetting().withUsedItem(usedItem);
 		this.withCurrentItem(null);
 
-		// save current relevance scores to file
+		// Save current relevance scores to file
 		this.resultTracker.writeToCSV(this.getRecommender().getRecommendations(), this.getCurrentUser(),
 				RecoTool.setting);
 
@@ -997,7 +1013,12 @@ public class RecoTool {
 		RecoTool.setting.setCurrentTime(timeOfUsage);
 		this.setNewEvaluation(false);
 
-		this.firePropertyChange(PROPERTY_ITEM_USAGE_DONE, null, usedItem);
+		// Send current state of used item to view controller
+		int idx = (this.recommender.getRecommendations().size() == 0) ? 0
+				: new ArrayList<Item>(this.recommender.getRecommendations().keySet()).indexOf(usedItem) + 1;
+		double score = this.recommender.getRecommendations().get(usedItem);
+
+		this.firePropertyChange(PROPERTY_ITEM_USAGE_DONE, null, new UsedItem(idx, score, usedItem));
 
 		this.updateBySetting(this.user);
 
@@ -1832,5 +1853,36 @@ public class RecoTool {
 			listeners.removePropertyChangeListener(propertyName, listener);
 		}
 		return true;
+	}
+
+	/**
+	 * UsedItem Class is used to Communicate with WoZ-Controller
+	 * 
+	 * @author mac
+	 *
+	 */
+
+	public class UsedItem {
+		private int index;
+		private double score;
+		private Item item;
+
+		UsedItem(int index, double score, Item item) {
+			this.index = index;
+			this.score = score;
+			this.item = item;
+		}
+
+		public int getIndex() {
+			return this.index;
+		}
+
+		public double getScore() {
+			return this.score;
+		}
+
+		public Item getItem() {
+			return this.item;
+		}
 	}
 }

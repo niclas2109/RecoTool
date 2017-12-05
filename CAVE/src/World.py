@@ -11,7 +11,7 @@ class World():
 	def __init__(self):
 		vizconnect.go('vizconnect_config_cave_art.py')
 		
-		_startPos = [28, 2.6, 160]
+		_startPos = [28, 2.45, 160]
 		
 		### Collision
 		### Desktop
