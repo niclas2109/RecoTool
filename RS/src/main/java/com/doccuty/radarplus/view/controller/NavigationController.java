@@ -29,7 +29,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 
 /**
- * This controller manages navigation through maps
+ * This controller manages navigation through maps in CAVE.
+ * All functions are connected to respective *.fxml file.
  * 
  * @author Niclas Kannengießer
  *
@@ -118,6 +119,11 @@ public class NavigationController implements Initializable {
 		this.parent.openSystemPromptController(null);
 	}
 
+	/**
+	 * Start a new navigation to
+	 * @param ev
+	 */
+	
 	@FXML
 	public void startNavigation(MouseEvent ev) {
 
@@ -127,7 +133,7 @@ public class NavigationController implements Initializable {
 		Geoposition destination = new Geoposition().withLatitude(Double.parseDouble(this.tf_latitude.getText()))
 				.withLongitude(Double.parseDouble(this.tf_longitude.getText())).withId(this.destinationData.size() + 1);
 
-		Item item = new Item().withGeoposition(destination);
+		Item item = new Item().withName("destination").withGeoposition(destination);
 
 		try {
 			this.app.startNavigation(item);

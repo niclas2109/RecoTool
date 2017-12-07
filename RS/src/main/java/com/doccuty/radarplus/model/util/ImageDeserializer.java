@@ -11,6 +11,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 
+/**
+ * This deserialzer is used to deserialize an image from Base64 to byte[].
+ * @author Niclas Kannengießer
+ *
+ */
+
 public class ImageDeserializer extends StdDeserializer<Image> {
 
 	private static final long serialVersionUID = -5510353102817291511L;

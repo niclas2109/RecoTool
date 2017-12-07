@@ -15,6 +15,13 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+/**
+ * An Attribute is an description of features and can be assigned
+ * to an AttributeTupel instance. 
+ * @author mac
+ *
+ */
+
 @Entity
 @Table(name="attribute")
 public class Attribute implements Comparable<Attribute>, Serializable {

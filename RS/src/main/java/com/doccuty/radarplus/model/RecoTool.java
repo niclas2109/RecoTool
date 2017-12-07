@@ -44,6 +44,15 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * This is the main model in RecoTool, which provides functionality
+ * to control all included functions and enables usage of network connection
+ * via MQTT.
+ * 
+ * @author Niclas Kannengießer
+ *
+ */
+
 public class RecoTool {
 
 	private final static Logger LOG = Logger.getLogger(RecoTool.class);

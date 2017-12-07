@@ -14,6 +14,13 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+/**
+ * This class represents traffic junctions.
+ * Items can be assigned to traffic junctions which is used for constraint based filtering.
+ * @author mac
+ *
+ */
+
 @Entity
 @Table(name="traffic_junction")
 public class TrafficJunction {

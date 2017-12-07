@@ -188,7 +188,7 @@ public class Recommender {
 
 	public String checkMode(Setting setting) throws MqttPersistenceException, MqttException {
 
-		if (this.itemMap.size() == 0 && this.mode.compareTo(PROPERTY_ABIDANCE_MODE) == 0
+		if ((this.itemMap == null || this.itemMap.size() == 0) && this.mode.compareTo(PROPERTY_ABIDANCE_MODE) == 0
 				&& this.app.getNumOfItemsToUse() == 0) {
 			String oldValue = this.mode;
 			this.mode = PROPERTY_EFFICIENCY_MODE;

@@ -37,16 +37,18 @@
                             <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" maxWidth="200.0" minWidth="200.0" />
                           </columnConstraints>
                           <rowConstraints>
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
                             <RowConstraints vgrow="NEVER" />
                             <RowConstraints vgrow="NEVER" />
                             <RowConstraints vgrow="NEVER" />
                           </rowConstraints>
                            <children>
-                              <TextField fx:id="tf_latitude" alignment="CENTER_RIGHT" promptText="0" GridPane.columnIndex="1" />
-                              <TextField fx:id="tf_longitude" alignment="CENTER_RIGHT" promptText="0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                              <Button fx:id="btn_startNavigation" defaultButton="true" mnemonicParsing="false" onMouseClicked="#startNavigation" text="%controller.startNavigation" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                              <Label text="%latitude" />
-                              <Label text="%longitude" GridPane.rowIndex="1" />
+                              <TextField fx:id="tf_latitude" alignment="CENTER_RIGHT" promptText="0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                              <TextField fx:id="tf_longitude" alignment="CENTER_RIGHT" promptText="0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                              <Button fx:id="btn_startNavigation" defaultButton="true" mnemonicParsing="false" onMouseClicked="#startNavigation" text="%controller.startNavigation" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                              <Label text="%latitude" GridPane.rowIndex="1" />
+                              <Label text="%longitude" GridPane.rowIndex="2" />
+                              <TextField GridPane.columnIndex="1" />
                            </children>
                         </GridPane>
                         <Label text="%navigationController.lastDestinations">

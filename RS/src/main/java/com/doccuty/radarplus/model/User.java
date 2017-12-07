@@ -30,6 +30,13 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+
+/**
+ * This class represents users in RecoTool.
+ * @author Niclas Kannengießer
+ *
+ */
+
 @Entity
 @Table(name = "user")
 @PrimaryKeyJoinColumn(name = "id")

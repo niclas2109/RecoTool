@@ -22,6 +22,14 @@ import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+
+/**
+ * Both users and items can be described by their respective attribute tree
+ * including a description of its features.
+ * @author Niclas Kannengießer
+ *
+ */
+
 @Entity
 @Table(name = "attribute_tupel_tree")
 @Inheritance(strategy = InheritanceType.JOINED)
